@@ -1,6 +1,9 @@
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+ * Performs tests to assure Sym and SymTable are functioning correctly
+ */
 public class P1 {
 
 	/*
