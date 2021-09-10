@@ -3,6 +3,9 @@
  */
 public class Sym {
 
+	/*
+	 * A string value of the type of the current symbol
+	 */
 	private String type;
 
 	/*

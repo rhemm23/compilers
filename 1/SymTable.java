@@ -7,6 +7,10 @@ import java.util.List;
  */
 public class SymTable {
 
+	/*
+	 * A list of maps, where each element represents a scope and is a map of
+	 * symbol names to symbol objects
+	 */
 	private List<HashMap<String, Sym>> scopes;
 
 	/*
@@ -20,7 +24,8 @@ public class SymTable {
 	/*
 	 * Adds a new symbol declaration to the table
 	 */
-	public void addDecl(String name, Sym sym) throws DuplicateSymException, EmptySymTableException {
+	public void addDecl(String name, Sym sym)
+		throws DuplicateSymException, EmptySymTableException {
 		if (this.scopes.isEmpty()) {
 			throw new EmptySymTableException();
 		}
@@ -41,7 +46,8 @@ public class SymTable {
 	}
 
 	/*
-	 * Looks for a symbol in the local scope and returns it, returns null if one does not exist
+	 * Looks for a symbol in the local scope and returns it,
+	 * returns null if one does not exist
 	 */
 	public Sym lookupLocal(String name) throws EmptySymTableException {
 		if (this.scopes.isEmpty()) {
@@ -51,7 +57,8 @@ public class SymTable {
 	}
 
 	/*
-	 * Looks for a symbol in the entire table and returns it, returns null if one does not exist
+	 * Looks for a symbol in the entire table and returns it,
+	 * returns null if one does not exist
 	 */
 	public Sym lookupGlobal(String name) throws EmptySymTableException {
 		if (this.scopes.isEmpty()) {

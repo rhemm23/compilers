@@ -1,6 +1,7 @@
 import java.lang.Exception;
 
 /*
- * Exception that indicates there are multiple of the same symbol in the symbol table
+ * Exception thrown when trying to insert a symbol that already exists
+ * in the symbol table
  */
 public class DuplicateSymException extends Exception { }
