@@ -37,7 +37,7 @@ public class P1 {
 	/*
 	 * Executes all unit tests and prints results to the terminal
 	 */
-	public static void main() {
+	public static void main(String[] args) {
 		HashMap<String, UnitTest> unitTests = new HashMap<String, UnitTest>() {{
 			put("Sym - getType", () -> testSymGetType());
 			put("Sym - toString", () -> testSymToString());
@@ -164,9 +164,9 @@ public class P1 {
 		try {
 			symTable.addDecl(TEST_SYM_TYPE, sym);
 			return false;
-		} catch (DuplicateSymException e) {
-			return false;
 		} catch (EmptySymTableException e) {
+			return false;
+		} catch (DuplicateSymException e) {
 			return true;
 		}
 	}
