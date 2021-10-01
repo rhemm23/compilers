@@ -174,7 +174,7 @@ receive {
                                   switch (yytext().charAt(i + 1)) {
                                     case 'n':
                                     case 't':
-                                    case ''':
+                                    case '\'':
                                     case '"':
                                     case '?':
                                     case '\\':
@@ -218,7 +218,7 @@ receive {
         return S;
       }
 
-<<    {
+\<\<  {
         Symbol S = new Symbol(sym.WRITE, new TokenVal(yyline + 1, CharNum.num));
         CharNum += 2;
         return S;
@@ -254,7 +254,7 @@ receive {
         return S;
       }
 
-<=    {
+\<=   {
         Symbol S = new Symbol(sym.LESSEQ, new TokenVal(yyline + 1, CharNum.num));
         CharNum += 2;
         return S;
@@ -284,7 +284,7 @@ receive {
 \*  { return new Symbol(sym.TIMES, new TokenVal(yyline + 1, CharNum.num++)); }
 /   { return new Symbol(sym.DIVIDE, new TokenVal(yyline + 1, CharNum.num++)); }
 !   { return new Symbol(sym.NOT, new TokenVal(yyline + 1, CharNum.num++)); }
-<   { return new Symbol(sym.LESS, new TokenVal(yyline + 1, CharNum.num++)); }
+\<  { return new Symbol(sym.LESS, new TokenVal(yyline + 1, CharNum.num++)); }
 >   { return new Symbol(sym.GREATER, new TokenVal(yyline + 1, CharNum.num++)); }
 =   { return new Symbol(sym.ASSIGN, new TokenVal(yyline + 1, CharNum.num++)); }
 
