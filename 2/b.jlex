@@ -288,7 +288,7 @@ receive {
 >   { return new Symbol(sym.GREATER, new TokenVal(yyline + 1, CharNum.num++)); }
 =   { return new Symbol(sym.ASSIGN, new TokenVal(yyline + 1, CharNum.num++)); }
 
-((///)|(###)).* { CharNum.num += yytext().length() }
+((///)|(###)).* { CharNum.num += yytext().length(); }
 
 \n        { CharNum.num = 1; }
 
