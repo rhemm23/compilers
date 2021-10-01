@@ -272,25 +272,21 @@ return new Symbol(sym.EOF);
         return S;
       }
 
-"{"  { return new Symbol(sym.LCURLY, new TokenVal(yyline + 1, CharNum.num++)); }
-"}"  { return new Symbol(sym.RCURLY, new TokenVal(yyline + 1, CharNum.num++)); }
-"("  { return new Symbol(sym.LPAREN, new TokenVal(yyline + 1, CharNum.num++)); }
-")"  { return new Symbol(sym.RPAREN, new TokenVal(yyline + 1, CharNum.num++)); }
-";"  { return new Symbol(sym.SEMICOLON, new TokenVal(yyline + 1, CharNum.num++)); }
-","  { return new Symbol(sym.COMMA, new TokenVal(yyline + 1, CharNum.num++)); }
-"."  { return new Symbol(sym.DOT, new TokenVal(yyline + 1, CharNum.num++)); }
-"+"  { return new Symbol(sym.PLUS, new TokenVal(yyline + 1, CharNum.num++)); }
-"-" {
-      Symbol S = new Symbol(sym.MINUS, new TokenVal(yyline + 1, CharNum.num));
-      CharNum.num++;
-      return S;
-    }
-"*"  { return new Symbol(sym.TIMES, new TokenVal(yyline + 1, CharNum.num++)); }
-"/"  { return new Symbol(sym.DIVIDE, new TokenVal(yyline + 1, CharNum.num++)); }
-"!"  { return new Symbol(sym.NOT, new TokenVal(yyline + 1, CharNum.num++)); }
-"<"  { return new Symbol(sym.LESS, new TokenVal(yyline + 1, CharNum.num++)); }
-">"  { return new Symbol(sym.GREATER, new TokenVal(yyline + 1, CharNum.num++)); }
-"="  { return new Symbol(sym.ASSIGN, new TokenVal(yyline + 1, CharNum.num++)); }
+"{"   { return new Symbol(sym.LCURLY, new TokenVal(yyline + 1, CharNum.num++)); }
+"}"   { return new Symbol(sym.RCURLY, new TokenVal(yyline + 1, CharNum.num++)); }
+"("   { return new Symbol(sym.LPAREN, new TokenVal(yyline + 1, CharNum.num++)); }
+")"   { return new Symbol(sym.RPAREN, new TokenVal(yyline + 1, CharNum.num++)); }
+";"   { return new Symbol(sym.SEMICOLON, new TokenVal(yyline + 1, CharNum.num++)); }
+","   { return new Symbol(sym.COMMA, new TokenVal(yyline + 1, CharNum.num++)); }
+"."   { return new Symbol(sym.DOT, new TokenVal(yyline + 1, CharNum.num++)); }
+"+"   { return new Symbol(sym.PLUS, new TokenVal(yyline + 1, CharNum.num++)); }
+"-"   { return new new Symbol(sym.MINUS, new TokenVal(yyline + 1, CharNum.num++)); }
+"*"   { return new Symbol(sym.TIMES, new TokenVal(yyline + 1, CharNum.num++)); }
+"/"   { return new Symbol(sym.DIVIDE, new TokenVal(yyline + 1, CharNum.num++)); }
+"!"   { return new Symbol(sym.NOT, new TokenVal(yyline + 1, CharNum.num++)); }
+"<"   { return new Symbol(sym.LESS, new TokenVal(yyline + 1, CharNum.num++)); }
+">"   { return new Symbol(sym.GREATER, new TokenVal(yyline + 1, CharNum.num++)); }
+"="   { return new Symbol(sym.ASSIGN, new TokenVal(yyline + 1, CharNum.num++)); }
 
 (("///")|("###")).* { CharNum.num += yytext().length(); }
 
