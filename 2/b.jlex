@@ -168,7 +168,7 @@ receive {
         }
 
 \"(\\.|[^\n\"\\])*(\n|\")?  {
-                              bool badEscape = false;
+                              boolean badEscape = false;
                               for (int i = 1; i < yytext().length(); i++) {
                                 if (yytext().charAt(i) == '\\') {
                                   switch (yytext().charAt(i + 1)) {
@@ -191,7 +191,7 @@ receive {
                                 }
                               }
 
-                              bool notTerminated =
+                              boolean notTerminated =
                                 (yytext().length() == 1) |
                                 (yytext().length() == 2 && yytext().charAt(yytext().length() - 1) != '"') |
                                 (yytext().charAt(yytext().length() - 1) != '"' || yytext().charAt(yytext().length() - 2) == '\\');
@@ -214,61 +214,61 @@ receive {
 
 >>    {
         Symbol S = new Symbol(sym.READ, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 \<\<  {
         Symbol S = new Symbol(sym.WRITE, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 --    {
         Symbol S = new Symbol(sym.MINUSMINUS, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 &&    {
         Symbol S = new Symbol(sym.AND, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 \|\|  {
         Symbol S = new Symbol(sym.OR, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 !=    {
         Symbol S = new Symbol(sym.NOTEQUALS, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 ==    {
         Symbol S = new Symbol(sym.EQUALS, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 \<=   {
         Symbol S = new Symbol(sym.LESSEQ, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 >=    {
         Symbol S = new Symbol(sym.GREATEREQ, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
 \+\+  {
         Symbol S = new Symbol(sym.PLUSPLUS, new TokenVal(yyline + 1, CharNum.num));
-        CharNum += 2;
+        CharNum.num += 2;
         return S;
       }
 
