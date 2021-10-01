@@ -280,7 +280,7 @@ return new Symbol(sym.EOF);
 ","   { return new Symbol(sym.COMMA, new TokenVal(yyline + 1, CharNum.num++)); }
 "."   { return new Symbol(sym.DOT, new TokenVal(yyline + 1, CharNum.num++)); }
 "+"   { return new Symbol(sym.PLUS, new TokenVal(yyline + 1, CharNum.num++)); }
-"-"   { return new new Symbol(sym.MINUS, new TokenVal(yyline + 1, CharNum.num++)); }
+"-"   { return new Symbol(sym.MINUS, new TokenVal(yyline + 1, CharNum.num++)); }
 "*"   { return new Symbol(sym.TIMES, new TokenVal(yyline + 1, CharNum.num++)); }
 "/"   { return new Symbol(sym.DIVIDE, new TokenVal(yyline + 1, CharNum.num++)); }
 "!"   { return new Symbol(sym.NOT, new TokenVal(yyline + 1, CharNum.num++)); }
