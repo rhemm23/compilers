@@ -57,10 +57,10 @@ public class P2 {
                 outFile.println("void");
                 break;
             case sym.TRUE:
-                outFile.println("true"); 
+                outFile.println("tru"); 
                 break;
             case sym.FALSE:
-                outFile.println("false"); 
+                outFile.println("fls"); 
                 break;
             case sym.STRUCT:
                 outFile.println("struct"); 
@@ -81,7 +81,7 @@ public class P2 {
                 outFile.println("while");
                 break;
             case sym.RETURN:
-                outFile.println("return");
+                outFile.println("ret");
                 break;
             case sym.ID:
                 outFile.println(((IdTokenVal)my_token.value).idVal);
