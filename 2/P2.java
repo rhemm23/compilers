@@ -294,7 +294,8 @@ public class P2 {
         int charNum = 1;
         while (my_token.sym != sym.EOF) {
             my_token = my_scanner.next_token();
-            if (my_token.linenum != lineNum && my_token.charnum != charNum) {
+            TokenVal token_val = (TokenVal)my_token.value;
+            if (token_val.linenum != lineNum && token_val.charnum != charNum) {
                 System.out.println("ERROR testBadIntegerLiterals: " +
                 "linenum or charnum is not correct.");
             }
@@ -332,7 +333,7 @@ public class P2 {
                     break;
                 default:
                     break;// Unexpected line 
-            } // end switch
+            }// end switch
             lineNum = lineNum + 1;
         }
     }
