@@ -211,9 +211,9 @@ public class P2 {
         System.out.println("\nEXPECTED OUTPUT:");
         System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
         System.out.println("2:1 ***ERROR*** unterminated string literal ignore");
-        System.out.println("3:1 ***ERROR*** unterminated string literal ignore");
-        System.out.println("4:1 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("5:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
-        System.out.println("6:1 ***ERROR*** unterminated string literal ignore");
+        System.out.println("3:1 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("5:1 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("6:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
+        System.out.println("7:1 ***ERROR*** unterminated string literal ignore");
     }
 }

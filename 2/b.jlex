@@ -206,7 +206,11 @@ return new Symbol(sym.EOF);
                               } else {
                                 S = new Symbol(sym.STRINGLITERAL, new StrLitTokenVal(yyline + 1, CharNum.num, yytext()));
                               }
-                              CharNum.num += yytext().length();
+                              if (yytext().charAt(yytext().length() - 1) == '\n') {
+                                CharNum.num = 1;
+                              } else {
+                                CharNum.num += yytext().length();
+                              }
                               if (S != null) {
                                 return S;
                               }
