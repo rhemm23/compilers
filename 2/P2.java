@@ -14,7 +14,7 @@ public class P2 {
         // test all tokens
         testAllTokens();
         CharNum.num = 1;
-        testUnterminatedString();
+        testStringLiteralErrors();
         CharNum.num = 1;
     
         // ADD CALLS TO OTHER TEST METHODS HERE
