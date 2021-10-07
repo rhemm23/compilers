@@ -269,7 +269,7 @@ public class P2 {
         assertErrorMessagesArePrinted(baos, expectedOutputLines);
     }
 
-        /**
+    /**
      * testBadIntegerLiterals
      *
      * Open and read from file testBadIntegerLiterals.txt
@@ -331,9 +331,8 @@ public class P2 {
                     }
                     break;
                 default:
-                    // Unexpected line
-                } // end switch
-            }
+                    break;// Unexpected line 
+            } // end switch
             lineNum = lineNum + 1;
         }
     }
