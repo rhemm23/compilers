@@ -180,31 +180,37 @@ public class P2 {
 
 
     /**
-     * testAllTokens
+     * testStringLiteralErrors
      *
-     * Open and read from file allTokens.txt
-     * For each token read, write the corresponding string to allTokens.out
-     * If the input file contains all tokens, one per line, we can verify
-     * correctness of the scanner by comparing the input and output files
-     * (e.g., using a 'diff' command).
+     * Open and read from file testStringLiteralErrors.txt
+     * Print 'unterminated string literal ignored'
+     * for statements with unterminated string literals.
+     * Print 'unterminated string literal with bad escaped character ignored'
+     * for unterminated statements with bad escape characters.
+     * Print 'string literal with bad escaped character ignored'
+     * for a bad escape character only.
+     * Expected output is also printed to the console
      */
-    private static void testUnterminatedString() throws IOException {
+    private static void testStringLiteralErrors() throws IOException {
         // open input and output files
+        System.out.println("TESTING Unterminated String Errors:\n");
         FileReader inFile = null;
         try {
-            inFile = new FileReader("unterminatedString.in");
+            inFile = new FileReader("testStringLiteralErrors.in");
         } catch (FileNotFoundException ex) {
-            System.err.println("File allTokens.in not found.");
+            System.err.println("File testStringLiteralErrors.in not found.");
             System.exit(-1);
         }
 
         // create and call the scanner
         Yylex my_scanner = new Yylex(inFile);
         Symbol my_token = my_scanner.next_token();
-        System.out.println("TESTING Unterminated String Errors:\n");
-        while (my_token.sym != sym.EOF) {
-            my_token = my_scanner.next_token();
-        } // end while
-        System.out.println("\nEXPECTED OUTPUT:\n1:1 ***ERROR*** unterminated string literal ignored\nunterminated string literal with bad escaped character ignored");
+        System.out.println("\nEXPECTED OUTPUT:");
+        System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
+        System.out.println("2:22 ***ERROR*** unterminated string literal ignore");
+        System.out.println("3:30 ***ERROR*** unterminated string literal ignore");
+        System.out.println("4:39 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("5:43 ***ERROR*** unterminated string literal with bad escaped character ignored");
+        System.out.println("6:51 ***ERROR*** unterminated string literal ignore");
     }
 }
