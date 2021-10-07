@@ -20,6 +20,8 @@ public class P2 {
         CharNum.num = 1;
         testComments();
         CharNum.num = 1;
+        testBadIntegerLiterals();
+        CharNum.num = 1;
         
         // ADD CALLS TO OTHER TEST METHODS HERE
     }
