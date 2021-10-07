@@ -18,6 +18,8 @@ public class P2 {
         CharNum.num = 1;
         testIllegalCharacters();
         CharNum.num = 1;
+        testComments();
+        CharNum.num = 1;
         
         // ADD CALLS TO OTHER TEST METHODS HERE
     }
@@ -248,5 +250,32 @@ public class P2 {
         System.out.println("1:1 ***ERROR*** illegal character ignored: ~");
         System.out.println("2:1 ***ERROR*** illegal character ignored: $");
         System.out.println("3:1 ***ERROR*** illegal character ignored: @");
+    }
+
+    /**
+     * testIllegalCharacters
+     *
+     * Open and read from file testIllegalCharacters.txt
+     * Throws errors for illegal character use
+     * Ensure console output is the same as expected
+     */
+    private static void testComments() throws IOException {
+        // open input and output files
+        System.out.println("TESTING comments:");
+        FileReader inFile = null;
+        try {
+            inFile = new FileReader("testComments.in");
+        } catch (FileNotFoundException ex) {
+            System.err.println("File testComments.in not found.");
+            System.exit(-1);
+        }
+        
+        // create and call the scanner
+        Yylex scan = new Yylex(inFile);
+        if (scan.next_token().sym != sym.EOF) {
+            System.out.println("FAILED: Comment interpreted as symbol");
+        } else {
+            System.out.println("SUCCESS: Comments correctly ignored");
+        }
     }
 }
