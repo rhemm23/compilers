@@ -14,6 +14,8 @@ public class P2 {
         // test all tokens
         testAllTokens();
         CharNum.num = 1;
+        testUnterminatedString();
+        CharNum.num = 1;
     
         // ADD CALLS TO OTHER TEST METHODS HERE
     }
@@ -174,5 +176,35 @@ public class P2 {
             my_token = my_scanner.next_token();
         } // end while
         outFile.close();
+    }
+
+
+    /**
+     * testAllTokens
+     *
+     * Open and read from file allTokens.txt
+     * For each token read, write the corresponding string to allTokens.out
+     * If the input file contains all tokens, one per line, we can verify
+     * correctness of the scanner by comparing the input and output files
+     * (e.g., using a 'diff' command).
+     */
+    private static void testUnterminatedString() throws IOException {
+        // open input and output files
+        FileReader inFile = null;
+        try {
+            inFile = new FileReader("unterminatedString.in");
+        } catch (FileNotFoundException ex) {
+            System.err.println("File allTokens.in not found.");
+            System.exit(-1);
+        }
+
+        // create and call the scanner
+        Yylex my_scanner = new Yylex(inFile);
+        Symbol my_token = my_scanner.next_token();
+        System.out.println("TESTING Unterminated String Errors:\n");
+        while (my_token.sym != sym.EOF) {
+            my_token = my_scanner.next_token();
+        } // end while
+        System.out.println("\nEXPECTED OUTPUT:\n1:1 ***ERROR*** unterminated string literal ignored\nunterminated string literal with bad escaped character ignored");
     }
 }
