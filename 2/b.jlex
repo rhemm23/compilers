@@ -148,7 +148,7 @@ return new Symbol(sym.EOF);
             return S;
           }
 
-[a-fA-F_][0-9a-fA-F_]*  {
+[a-zA-Z_][0-9a-zA-Z_]*  {
                           Symbol S = new Symbol(sym.ID, new IdTokenVal(yyline + 1, CharNum.num, yytext()));
                           CharNum.num += yytext().length();
                           return S;
