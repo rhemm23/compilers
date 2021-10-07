@@ -22,6 +22,7 @@ public class P2 {
         CharNum.num = 1;
         testBadIntegerLiterals();
         CharNum.num = 1;
+        testCharNumbers();
     }
 
     /**
@@ -54,7 +55,7 @@ public class P2 {
         while (my_token.sym != sym.EOF) {
             switch (my_token.sym) {
             case sym.BOOL:
-                outFile.println("bool"); 
+                outFile.println("bool");
                 break;
 			case sym.INT:
                 outFile.println("int");
@@ -330,6 +331,66 @@ public class P2 {
             "5:1 ***WARNING*** integer literal too large; using max value"
         };
         assertErrorMessagesArePrinted(baos, expectedOutput);
+    }
+
+    /**
+     * testCharNumbers
+     *
+     * Open and read from file testCharNumbers.in
+     * Assures that tokens read on the same line have the correct CharNum
+     */
+    private static void testCharNumbers() throws IOException {
+        // open input and output files
+        System.out.println("TESTING char numbers:");
+        FileReader inFile = null;
+        try {
+            inFile = new FileReader("testCharNumbers.in");
+        } catch (FileNotFoundException ex) {
+            System.err.println("File testCharNumbers.inn not found.");
+            System.exit(-1);
+        }
+
+        // create and call the scanner
+        Yylex my_scanner = new Yylex(inFile);
+        Symbol my_token = my_scanner.next_token();
+        int lineNum = 1;
+        int charNum = 1;
+
+        // Capture error output
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream errorOutput = new PrintStream(baos);
+        System.setErr(errorOutput);
+
+        int[] expectedCharNums = new int[] {
+            1,
+            4,
+            7,
+            10,
+            13,
+            21,
+            27,
+            33,
+            42,
+            45,
+            51,
+            54,
+            57,
+            59
+        };
+
+        boolean passed = true;
+        for (int i = 0; i < 14; i++) {
+            TokenVal token = (TokenVal)my_token.value;
+            if (token.charnum != expectedCharNums[i]) {
+                System.out.println(String.format("FAILED: Wrong CharNum for token %d", token.charnum));
+                passed = false;
+                break;
+            }
+            my_token = my_scanner.next_token();
+        }
+        if (passed) {
+            System.out.println("\tSUCCESS: All tokens have correct CharNum\n");
+        }
     }
 
     /**
