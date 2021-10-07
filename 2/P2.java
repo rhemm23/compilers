@@ -16,7 +16,9 @@ public class P2 {
         CharNum.num = 1;
         testStringLiteralErrors();
         CharNum.num = 1;
-    
+        testIllegalCharacters();
+        CharNum.num = 1;
+        
         // ADD CALLS TO OTHER TEST METHODS HERE
     }
 
@@ -210,10 +212,41 @@ public class P2 {
         }
         System.out.println("\nEXPECTED OUTPUT:");
         System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
-        System.out.println("2:1 ***ERROR*** unterminated string literal ignore");
-        System.out.println("3:1 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("5:1 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("6:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
-        System.out.println("7:1 ***ERROR*** unterminated string literal ignore");
+        System.out.println("2:1 ***ERROR*** unterminated string literal ignored");
+        System.out.println("3:1 ***ERROR*** unterminated string literal ignored");
+        System.out.println("4:1 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("6:1 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("7:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
+        System.out.println("8:1 ***ERROR*** unterminated string literal ignored\n");
+    }
+
+    /**
+     * testIllegalCharacters
+     *
+     * Open and read from file testIllegalCharacters.txt
+     * Throws errors for illegal character use
+     * Ensure console output is the same as expected
+     */
+    private static void testIllegalCharacters() throws IOException {
+        // open input and output files
+        System.out.println("TESTING Illegal Characters:\n");
+        FileReader inFile = null;
+        try {
+            inFile = new FileReader("testIllegalCharacters.in");
+        } catch (FileNotFoundException ex) {
+            System.err.println("File testIllegalCharacters.in not found.");
+            System.exit(-1);
+        }
+        
+        // create and call the scanner
+        Yylex my_scanner = new Yylex(inFile);
+        Symbol my_token = my_scanner.next_token();
+        while (my_token.sym != sym.EOF) {
+            my_token = my_scanner.next_token();
+        }
+        System.out.println("\nEXPECTED OUTPUT:");
+        System.out.println("1:1 ***ERROR*** illegal character ignored: ~");
+        System.out.println("2:1 ***ERROR*** illegal character ignored: $");
+        System.out.println("3:1 ***ERROR*** illegal character ignored: @");
     }
 }
