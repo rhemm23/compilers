@@ -267,6 +267,72 @@ public class P2 {
         assertErrorMessagesArePrinted(baos, expectedOutputLines);
     }
 
+        /**
+     * testBadIntegerLiterals
+     *
+     * Open and read from file testBadIntegerLiterals.txt
+     * Throws errors for bad interger literal use
+     * Ensure console output is the same as expected
+     */
+    private static void testBadIntegerLiterals() throws IOException {
+        // open input and output files
+        System.out.println("TESTING Bad Integer Literals:\n");
+        FileReader inFile = null;
+        try {
+            inFile = new FileReader("testBadIntegerLiterals.in");
+        } catch (FileNotFoundException ex) {
+            System.err.println("File testBadIntegerLiterals.in not found.");
+            System.exit(-1);
+        }
+        
+        // create and call the scanner
+        Yylex my_scanner = new Yylex(inFile);
+        Symbol my_token = my_scanner.next_token();
+        int lineNum = 1;
+        int charNum = 1;
+        while (my_token.sym != sym.EOF) {
+            my_token = my_scanner.next_token();
+            if (my_token.linenum != lineNum && my_token.charnum != charNum) {
+                System.out.println("ERROR testBadIntegerLiterals: " +
+                "linenum or charnum is not correct.");
+            }
+            
+            switch (lineNum) {
+                case 1: 
+                    if (((IntLitTokenVal)my_token.value).intVal != 10) {
+                        System.out.println("ERROR testBadIntegerLiterals: " +
+                            " integer should be 10");
+                    }
+                    break;
+                case 2:
+                    if (((IntLitTokenVal)my_token.value).intVal != 2147483646){
+                        System.out.println("ERROR testBadIntegerLiterals: " +
+                            " integer should be 2147483646");
+                    }
+                    break;
+                case 3:
+                    if (((IntLitTokenVal)my_token.value).intVal != 2147483647){
+                        System.out.println("ERROR testBadIntegerLiterals: " +
+                            " integer should be 2147483647");
+                    }
+                    break;
+                case 4:
+                    if (((IntLitTokenVal)my_token.value).intVal != 2147483647){
+                        System.out.println("ERROR testBadIntegerLiterals: " +
+                            " integer should be 2147483647");
+                    }
+                    break;
+                case 5:
+                    if (((IntLitTokenVal)my_token.value).intVal != 2147483647){
+                        System.out.println("ERROR testBadIntegerLiterals: " +
+                            " integer should be 2147483647");
+                    }
+                    break;
+            }
+            lineNum = lineNum + 1;
+        }
+    }
+
     /**
      * testIllegalCharacters
      *
