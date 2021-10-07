@@ -207,10 +207,10 @@ public class P2 {
         Symbol my_token = my_scanner.next_token();
         System.out.println("\nEXPECTED OUTPUT:");
         System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
-        System.out.println("2:22 ***ERROR*** unterminated string literal ignore");
-        System.out.println("3:28 ***ERROR*** unterminated string literal ignore");
-        System.out.println("4:39 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("5:43 ***ERROR*** unterminated string literal with bad escaped character ignored");
-        System.out.println("6:51 ***ERROR*** unterminated string literal ignore");
+        System.out.println("2:1 ***ERROR*** unterminated string literal ignore");
+        System.out.println("3:1 ***ERROR*** unterminated string literal ignore");
+        System.out.println("4:1 ***ERROR*** string literal with bad escaped character ignored");
+        System.out.println("5:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
+        System.out.println("6:1 ***ERROR*** unterminated string literal ignore");
     }
 }
