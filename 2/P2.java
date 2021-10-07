@@ -328,6 +328,9 @@ public class P2 {
                             " integer should be 2147483647");
                     }
                     break;
+                default:
+                    // Unexpected line
+                } // end switch
             }
             lineNum = lineNum + 1;
         }
