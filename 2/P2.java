@@ -201,10 +201,13 @@ public class P2 {
             System.err.println("File testStringLiteralErrors.in not found.");
             System.exit(-1);
         }
-
+        
         // create and call the scanner
         Yylex my_scanner = new Yylex(inFile);
         Symbol my_token = my_scanner.next_token();
+        while (my_token.sym != sym.EOF) {
+            my_token = my_scanner.next_token();
+        }
         System.out.println("\nEXPECTED OUTPUT:");
         System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
         System.out.println("2:1 ***ERROR*** unterminated string literal ignore");
