@@ -1,5 +1,6 @@
 "unterminated string
 "a \"
 "a \ "
+\a
 "a \a 
 "unterminated string (eof)
