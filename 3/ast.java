@@ -106,14 +106,17 @@ import java.util.*;
 // ####ASTnode class (base class for all other kinds of nodes)####
 // **********************************************************************
 
-abstract class ASTnode { 
-    // every subclass must provide an unparse operation
-    abstract public void unparse(PrintWriter p, int indent);
+abstract class ASTnode {
 
-    // this method can be used by the unparse methods to add indents
-    protected void addIndent(PrintWriter p, int indent) {
-        for (int k=0; k<indent; k++) p.print(" ");
+  // Every subclass must provide an unparse operation
+  abstract public void unparse(PrintWriter p, int indent);
+
+  // This method can be used by the unparse methods to add indents
+  protected void addIndent(PrintWriter code, int indent) {
+    for (int k=0; k < indent; k++) {
+      code.print(" ");
     }
+  }
 }
 
 // **********************************************************************
@@ -122,49 +125,50 @@ abstract class ASTnode {
 // **********************************************************************
 
 class ProgramNode extends ASTnode {
-    public ProgramNode(DeclListNode L) {
-        myDeclList = L;
-    }
+  
+  private DeclListNode declarationList;
 
-    public void unparse(PrintWriter p, int indent) {
-        myDeclList.unparse(p, indent);
-    }
+  public ProgramNode(DeclListNode declarationList) {
+    this.declarationList = declarationList;
+  }
 
-    // 1 kid
-    private DeclListNode myDeclList;
+  public void unparse(PrintWriter code, int indent) {
+    declarationList.unparse(code, indent);
+  }
 }
 
 class DeclListNode extends ASTnode {
-    public DeclListNode(List<DeclNode> S) {
-        myDecls = S;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-        Iterator it = myDecls.iterator();
-        try {
-            while (it.hasNext()) {
-                ((DeclNode)it.next()).unparse(p, indent);
-            }
-        } catch (NoSuchElementException ex) {
-            System.err.println("unexpected NoSuchElementException in DeclListNode.print");
-            System.exit(-1);
-        }
-    }
+  private List<DeclNode> declarations;
 
-    // list of kids (DeclNodes)
-    private List<DeclNode> myDecls;
+  public DeclListNode(List<DeclNode> declarations) {
+    this.declarations = declarations;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    Iterator iterator = myDecls.iterator();
+    try {
+      while (it.hasNext()) {
+        DeclNode declNode = (DeclNode)iterator.next();
+        declNode.unparse(code, indent);
+      }
+    } catch (NoSuchElementException ex) {
+      System.err.println("Unexpected NoSuchElementException in DeclListNode.print");
+      System.exit(-1);
+    }
+  }
 }
 
 class FormalsListNode extends ASTnode {
-    public FormalsListNode(List<FormalDeclNode> S) {
-        myFormals = S;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private List<FormalDeclNode> formals;
 
-    // list of kids (FormalDeclNodes)
-    private List<FormalDeclNode> myFormals;
+  public FormalsListNode(List<FormalDeclNode> formals) {
+    this.formals = formals;
+  }
+
+  public void unparse(PrintWriter p, int indent) {
+  }
 }
 
 class FnBodyNode extends ASTnode {
