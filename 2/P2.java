@@ -197,7 +197,7 @@ public class P2 {
      */
     private static void testStringLiteralErrors() throws IOException {
         // open input and output files
-        System.out.println("TESTING Unterminated String Errors:\n");
+        System.out.println("TESTING Unterminated String Errors:");
         FileReader inFile = null;
         try {
             inFile = new FileReader("testStringLiteralErrors.in");
@@ -206,20 +206,28 @@ public class P2 {
             System.exit(-1);
         }
         
+        // Capture error output
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream errorOutput = new PrintStream(baos);
+        System.setErr(errorOutput);
+
         // create and call the scanner
         Yylex my_scanner = new Yylex(inFile);
         Symbol my_token = my_scanner.next_token();
         while (my_token.sym != sym.EOF) {
             my_token = my_scanner.next_token();
         }
-        System.out.println("\nEXPECTED OUTPUT:");
-        System.out.println("1:1 ***ERROR*** unterminated string literal ignored");
-        System.out.println("2:1 ***ERROR*** unterminated string literal ignored");
-        System.out.println("3:1 ***ERROR*** unterminated string literal ignored");
-        System.out.println("4:1 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("6:1 ***ERROR*** string literal with bad escaped character ignored");
-        System.out.println("7:1 ***ERROR*** unterminated string literal with bad escaped character ignored");
-        System.out.println("8:1 ***ERROR*** unterminated string literal ignored\n");
+
+        String[] expectedOutputLines = new String[] {
+            "1:1 ***ERROR*** unterminated string literal ignored",
+            "2:1 ***ERROR*** unterminated string literal ignored",
+            "3:1 ***ERROR*** unterminated string literal ignored",
+            "4:1 ***ERROR*** string literal with bad escaped character ignored",
+            "6:1 ***ERROR*** string literal with bad escaped character ignored",
+            "7:1 ***ERROR*** unterminated string literal with bad escaped character ignored",
+            "8:1 ***ERROR*** unterminated string literal ignored"
+        };
+        assertErrorMessagesArePrinted(baos, expectedOutputLines);
     }
 
     /**
@@ -231,7 +239,7 @@ public class P2 {
      */
     private static void testIllegalCharacters() throws IOException {
         // open input and output files
-        System.out.println("TESTING Illegal Characters:\n");
+        System.out.println("TESTING Illegal Characters:");
         FileReader inFile = null;
         try {
             inFile = new FileReader("testIllegalCharacters.in");
@@ -240,16 +248,23 @@ public class P2 {
             System.exit(-1);
         }
         
+        // Capture error output
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream errorOutput = new PrintStream(baos);
+        System.setErr(errorOutput);
+
         // create and call the scanner
         Yylex my_scanner = new Yylex(inFile);
         Symbol my_token = my_scanner.next_token();
         while (my_token.sym != sym.EOF) {
             my_token = my_scanner.next_token();
         }
-        System.out.println("\nEXPECTED OUTPUT:");
-        System.out.println("1:1 ***ERROR*** illegal character ignored: ~");
-        System.out.println("2:1 ***ERROR*** illegal character ignored: $");
-        System.out.println("3:1 ***ERROR*** illegal character ignored: @");
+        String[] expectedOutputLines = new String[] {
+            "1:1 ***ERROR*** illegal character ignored: ~",
+            "2:1 ***ERROR*** illegal character ignored: $",
+            "3:1 ***ERROR*** illegal character ignored: @"
+        };
+        assertErrorMessagesArePrinted(baos, expectedOutputLines);
     }
 
     /**
@@ -273,9 +288,28 @@ public class P2 {
         // create and call the scanner
         Yylex scan = new Yylex(inFile);
         if (scan.next_token().sym != sym.EOF) {
-            System.out.println("FAILED: Comment interpreted as symbol");
+            System.out.println("\tFAILED: Comment interpreted as symbol\n");
         } else {
-            System.out.println("SUCCESS: Comments correctly ignored");
+            System.out.println("\tSUCCESS: Comments correctly ignored\n");
+        }
+    }
+
+    private static void assertErrorMessagesArePrinted(ByteArrayOutputStream errorStream, String[] expectedOutputLines) {
+        String[] outputLines = errorStream.toString().split("\n");
+        if (outputLines.length != expectedOutputLines.length) {
+            System.out.println("\tFAILED: Number of output lines did not match expected\n");
+        } else {
+            boolean passed = true;
+            for (int i = 0; i < outputLines.length; i++) {
+                if (!outputLines[i].equals(expectedOutputLines[i])) {
+                    System.out.println("\tFAILED: Error output did not match expected\n");
+                    passed = false;
+                    break;
+                }
+            }
+            if (passed) {
+                System.out.println("\tSUCCESS: All error messages are correct\n");
+            }
         }
     }
 }
