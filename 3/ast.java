@@ -185,10 +185,9 @@ class FnBodyNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    code.print("{");
-    if (this.declarations.getNumberOfDeclarations() > 0) {
-
-    }
+    code.println("{");
+    this.declarations.unparse(code, indent + 2);
+    this.statements.unparse(code, indent + 2);
   }
 }
 
@@ -316,184 +315,232 @@ class StructDeclNode extends DeclNode {
 }
 
 // **********************************************************************
-// ####TypeNode and its Subclasses####
+// #### TypeNode and its Subclasses ####
 // **********************************************************************
 
-abstract class TypeNode extends ASTnode {
-}
+abstract class TypeNode extends ASTnode { }
 
 class IntNode extends TypeNode {
-    public IntNode() {
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-        p.print("int");
-    }
+  public void unparse(PrintWriter code, int indent) {
+    code.print("int");
+  }
 }
 
 class BoolNode extends TypeNode {
-    public BoolNode() {
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public void unparse(PrintWriter code, int indent) {
+    code.print("bool");
+  }
 }
 
 class VoidNode extends TypeNode {
-    public VoidNode() {
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public void unparse(PrintWriter code, int indent) {
+    code.print("void");
+  }
 }
 
 class StructNode extends TypeNode {
-    public StructNode(IdNode id) {
-		myId = id;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
-	
-	// 1 kid
-    private IdNode myId;
+  private IdNode id;
+
+  public StructNode(IdNode id) {
+    this.id = id;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("struct ");
+    this.id.unparse(code, indent);
+  }
 }
 
 // **********************************************************************
-// ####StmtNode and its subclasses####
+// #### StmtNode and its subclasses ####
 // **********************************************************************
 
-abstract class StmtNode extends ASTnode {
-}
+abstract class StmtNode extends ASTnode { }
 
 class AssignStmtNode extends StmtNode {
-    public AssignStmtNode(AssignNode assign) {
-        myAssign = assign;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private AssignNode assign;
 
-    // 1 kid
-    private AssignNode myAssign;
+  public AssignStmtNode(AssignNode assign) {
+    this.assign = assign;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.assign.unparse(code, indent);
+    code.println(';');
+  }
 }
 
 class PreIncStmtNode extends StmtNode {
-    public PreIncStmtNode(ExpNode exp) {
-        myExp = exp;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode expression;
 
-    // 1 kid
-    private ExpNode myExp;
+  public PreIncStmtNode(ExpNode expression) {
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("++");
+    this.expression.unparse(code, indent);
+    code.print(';');
+  }
 }
 
 class PreDecStmtNode extends StmtNode {
-    public PreDecStmtNode(ExpNode exp) {
-        myExp = exp;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode expression;
 
-    // 1 kid
-    private ExpNode myExp;
+  public PreDecStmtNode(ExpNode expression) {
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("--");
+    this.expression.unparse(code, indent);
+    code.print(';');
+  }
 }
 
 class ReceiveStmtNode extends StmtNode {
-    public ReceiveStmtNode(ExpNode e) {
-        myExp = e;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode expression;
 
-    // 1 kid (actually can only be an IdNode or an ArrayExpNode)
-    private ExpNode myExp;
+  public ReceiveStmtNode(ExpNode expression) {
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("receive >> ");
+    this.expression.unparse(code, indent);
+    code.print(';');
+  }
 }
 
 class PrintStmtNode extends StmtNode {
-    public PrintStmtNode(ExpNode exp) {
-        myExp = exp;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode expression;
 
-    // 1 kid
-    private ExpNode myExp;
+  public PrintStmtNode(ExpNode expression) {
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("print << ");
+    this.expression.unparse(code, indent);
+    code.print(';');
+  }
 }
 
 class IfStmtNode extends StmtNode {
-    public IfStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
-        myDeclList = dlist;
-        myExp = exp;
-        myStmtList = slist;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private DeclListNode declarations;
+  private StmtListNode statements;
+  private ExpNode expression;
 
-    // e kids
-    private ExpNode myExp;
-    private DeclListNode myDeclList;
-    private StmtListNode myStmtList;
+  public IfStmtNode(
+    ExpNode expression,
+    DeclListNode declarations,
+    StmtListNode statements
+  ) {
+    this.declarations = declarations;
+    this.statements = statements;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("if (");
+    this.expression.unparse(code, indent);
+    code.println(") {");
+    this.declarations.unparse(code, indent + 2);
+    this.statements.unparse(code, indent + 2);
+  }
 }
 
 class IfElseStmtNode extends StmtNode {
-    public IfElseStmtNode(ExpNode exp, DeclListNode dlist1,
-                          StmtListNode slist1, DeclListNode dlist2,
-                          StmtListNode slist2) {
-        myExp = exp;
-        myThenDeclList = dlist1;
-        myThenStmtList = slist1;
-        myElseDeclList = dlist2;
-        myElseStmtList = slist2;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private DeclListNode thenDeclarations;
+  private DeclListNode elseDeclarations;
+  private StmtListNode thenStatements;
+  private StmtListNode elseStatements;
+  private ExpNode expression;
 
-    // 5 kids
-    private ExpNode myExp;
-    private DeclListNode myThenDeclList;
-    private StmtListNode myThenStmtList;
-    private StmtListNode myElseStmtList;
-    private DeclListNode myElseDeclList;
+  public IfElseStmtNode(
+    ExpNode expression,
+    DeclListNode thenDeclarations,
+    StmtListNode thenStatements,
+    DeclListNode elseDeclarations,
+    StmtListNode elseStatements
+  ) {
+    this.thenDeclarations = thenDeclarations;
+    this.elseDeclarations = elseDeclarations;
+    this.thenStatements = thenStatements;
+    this.elseStatements = elseStatements;
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("if (");
+    this.expression.unparse(code, indent);
+    code.println(") {");
+    this.thenDeclarations.unparse(code, indent + 2);
+    this.thenStatements.unparse(code, indent + 2);
+    code.println("\n} else {");
+    this.elseDeclarations.unparse(code, indent + 2);
+    this.elseStatements.unparse(code, indent + 2);
+  }
 }
 
 class WhileStmtNode extends StmtNode {
-    public WhileStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
-        myExp = exp;
-        myDeclList = dlist;
-        myStmtList = slist;
-    }
-	
-    public void unparse(PrintWriter p, int indent) {
-    }
 
-    // 3 kids
-    private ExpNode myExp;
-    private DeclListNode myDeclList;
-    private StmtListNode myStmtList;
+  private DeclListNode declarations;
+  private StmtListNode statements;
+  private ExpNode expression;
+
+  public WhileStmtNode(
+    ExpNode expression,
+    DeclListNode declarations,
+    StmtListNode statements
+  ) {
+    this.declarations = declarations;
+    this.statements = statements;
+    this.expression = expression;
+  }
+	
+  public void unparse(PrintWriter code, int indent) {
+    code.print("while (");
+    this.expression.unparse(code, indent);
+    code.print(") {\n");
+    this.declarations.unparse(code, indent + 2);
+    this.statements.unparse(code, indent + 2);
+  }
 }
 
 class RepeatStmtNode extends StmtNode {
-    public RepeatStmtNode(ExpNode exp, DeclListNode dlist, StmtListNode slist) {
-        myExp = exp;
-        myDeclList = dlist;
-        myStmtList = slist;
-    }
-	
-    public void unparse(PrintWriter p, int indent) {
-    }
 
-    // 3 kids
-    private ExpNode myExp;
-    private DeclListNode myDeclList;
-    private StmtListNode myStmtList;
+  private DeclListNode declarations;
+  private StmtListNode statements;
+  private ExpNode expression;
+
+  public RepeatStmtNode(
+    ExpNode expression,
+    DeclListNode declarations,
+    StmtListNode statements
+  ) {
+    this.declarations = declarations;
+    this.statements = statements;
+    this.expression = expression;
+  }
+	
+  public void unparse(PrintWriter code, int indent) {
+    code.print("repeat (");
+    this.expression.unparse(code, indent);
+    code.print(") {\n");
+    this.declarations.unparse(code, indent + 2);
+    this.statements.unparse(code, indent + 2);
+  }
 }
 
 class CallStmtNode extends StmtNode {
