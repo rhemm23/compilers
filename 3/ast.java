@@ -421,7 +421,7 @@ class AssignStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     this.assign.unparse(code, indent);
     code.println(';');
   }
@@ -436,7 +436,7 @@ class PreIncStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("++");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -452,7 +452,7 @@ class PreDecStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("--");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -468,7 +468,7 @@ class ReceiveStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("receive >> ");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -484,7 +484,7 @@ class PrintStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("print << ");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -507,7 +507,7 @@ class IfStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("if (");
     this.expression.unparse(code, 0);
     code.println(") {");
@@ -540,7 +540,7 @@ class IfElseStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(indent);
+    this.addIndent(code, indent);
     code.print("if (");
     this.expression.unparse(code, indent);
     code.println(") {");
