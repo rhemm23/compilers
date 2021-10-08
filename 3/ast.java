@@ -201,6 +201,7 @@ class FnBodyNode extends ASTnode {
     code.println("{");
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -259,32 +260,29 @@ abstract class DeclNode extends ASTnode {
 
 class VarDeclNode extends DeclNode {
 
-  private enum VariableDeclarationType {
-    Struct,
-    NonStruct
-  }
+  public static int NOT_STRUCT = -1;
 
-  private VariableDeclarationType variableDeclarationType;
   private IdNode structId;
   private TypeNode type;
   private IdNode id;
+  private int size;
 
   public VarDeclNode(TypeNode type, IdNode id) {
-    this.variableDeclarationType = VariableDeclarationType.NonStruct;
+    this.size = NOT_STRUCT;
     this.structId = null;
     this.type = type;
     this.id = id;
   }
 
   public VarDeclNode(IdNode structId, IdNode id) {
-    this.variableDeclarationType = VariableDeclarationType.Struct;
     this.structId = structId;
     this.type = null;
+    this.size = 0;
     this.id = id;
   }
 
   public void unparse(PrintWriter code, int indent) {
-    if (this.variableDeclarationType == VariableDeclarationType.NonStruct) {
+    if (this.size == NOT_STRUCT) {
       addIndent(code, indent);
       this.type.unparse(code, 0);
       code.print(" ");
@@ -320,7 +318,7 @@ class FnDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    super.addIndent(code, indent);
+    this.addIndent(code, indent);
     this.type.unparse(code, indent);
     code.print(" ");
     this.id.unparse(code, indent);
@@ -360,10 +358,10 @@ class StructDeclNode extends DeclNode {
 
   public void unparse(PrintWriter code, int indent) {
     code.print("struct ");
-    this.id.unparse(code, indent);
-    code.print("{");
-    this.declarations.unparse(code, indent);
-    code.print("}");
+    this.id.unparse(code, 0);
+    code.println("{");
+    this.declarations.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -423,6 +421,7 @@ class AssignStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     this.assign.unparse(code, indent);
     code.println(';');
   }
@@ -437,6 +436,7 @@ class PreIncStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("++");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -452,6 +452,7 @@ class PreDecStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("--");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -467,6 +468,7 @@ class ReceiveStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("receive >> ");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -482,6 +484,7 @@ class PrintStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("print << ");
     this.expression.unparse(code, indent);
     code.print(';');
@@ -504,11 +507,13 @@ class IfStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("if (");
-    this.expression.unparse(code, indent);
+    this.expression.unparse(code, 0);
     code.println(") {");
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -535,14 +540,16 @@ class IfElseStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(indent);
     code.print("if (");
     this.expression.unparse(code, indent);
     code.println(") {");
     this.thenDeclarations.unparse(code, indent + 2);
     this.thenStatements.unparse(code, indent + 2);
-    code.println("\n} else {");
+    code.println("} else {");
     this.elseDeclarations.unparse(code, indent + 2);
     this.elseStatements.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -564,10 +571,11 @@ class WhileStmtNode extends StmtNode {
 	
   public void unparse(PrintWriter code, int indent) {
     code.print("while (");
-    this.expression.unparse(code, indent);
-    code.print(") {\n");
+    this.expression.unparse(code, 0);
+    code.println(") {");
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -589,10 +597,11 @@ class RepeatStmtNode extends StmtNode {
 	
   public void unparse(PrintWriter code, int indent) {
     code.print("repeat (");
-    this.expression.unparse(code, indent);
-    code.print(") {\n");
+    this.expression.unparse(code, 0);
+    code.println(") {");
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+    code.println("}");
   }
 }
 
@@ -606,7 +615,7 @@ class CallStmtNode extends StmtNode {
 
   public void unparse(PrintWriter code, int indent) {
     this.callExpression.unparse(code, indent);
-    code.print(';');
+    code.println(';');
   }
 }
 
@@ -624,9 +633,9 @@ class ReturnStmtNode extends StmtNode {
     code.print("return");
     if (this.expression != null) {
       code.print(' ');
-      this.expression.unparse(code, indent);
+      this.expression.unparse(code, 0);
     }
-    code.print(';');
+    code.println(';');
   }
 }
 
