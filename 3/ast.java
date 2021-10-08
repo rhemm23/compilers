@@ -165,6 +165,10 @@ class FormalsListNode extends ASTnode {
 
   private List<FormalDeclNode> formals;
 
+  public FormatsListNode() {
+    this.formals = new LinkedList<FormalDeclNode>();
+  }
+
   public FormalsListNode(List<FormalDeclNode> formals) {
     this.formals = formals;
   }
@@ -204,8 +208,16 @@ class StmtListNode extends ASTnode {
 
   private List<StmtNode> statements;
 
+  public StmtListNode() {
+    this.statements = new LinkedList<StmtNode>();
+  }
+
   public StmtListNode(List<StmtNode> statements) {
     this.statements = statements;
+  }
+
+  public void add(StmtNode statement) {
+    this.statements.add(statement);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -219,8 +231,16 @@ class ExpListNode extends ASTnode {
 
   private List<ExpNode> expressions;
 
+  public ExpListNode() {
+    this.expressions = new LinkedList<ExpNode>();
+  }
+
   public ExpListNode(List<ExpNode> expressions) {
     this.expressions = expressions;
+  }
+
+  public void add(ExpNode expression) {
+    this.expressions.add(expression);
   }
 
   public void unparse(PrintWriter code, int indent) {

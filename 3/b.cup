@@ -89,6 +89,7 @@ non terminal FnDeclNode       fnDecl;
 non terminal VarDeclNode      varDecl;
 non terminal FormalDeclNode   formalDecl;
 non terminal StructDeclNode   structDecl;
+non terminal LinkedList       structBody;
 
 /*
  * Type nodes
@@ -149,18 +150,108 @@ non terminal GreaterEqNode  greaterEqual;
 start with program;
 
 
-/* Grammar with actions
- *
- * NOTE: add more grammar rules below
+/*
+ * Misc grammar
  */
 program         ::= declList:d
                 {:
                   RESULT = new ProgramNode(d);
                 :};
 
+/*
+ * List grammar
+ */
+expList           ::= expList:el exp:e
+                  {:
+                    el.add(e);
+                    RESULT = el;
+                  :}
+                  |
+                  {:
+                    RESULT = new ExpListNode();
+                  :};
+
+stmtList          ::= stmtList:sl stmt:s
+                  {:
+                    sl.add(s);
+                    RESULT = sl;
+                  :}
+                  |
+                  {:
+                    RESULT = new StmtListNode();
+                  :};
+
+declList          ::= declList:dl decl:d
+                  {:
+                    dl.add(d);
+                    RESULT = dl;
+                  :}
+                  |
+                  {: 
+                    RESULT = new DeclListNode();
+                  :};
+
+formalsList       ::= formalsList:fl formalDecl:f
+                  {:
+                    fl.add(f);
+                    RESULT = fl;
+                  :}
+                  |
+                  {: 
+                    RESULT = new FormalsListNode();
+                  :};
+
+/*
+ * Grammar for declarations
+ */
+
+varDecl         ::= type:t id:i SEMICOLON
+                {:
+                  RESULT = new VarDeclNode(t, i);
+                :};
+
+fnDecl          ::= type:t id:i formalsList:fl fnBody:fb
+                {:
+                  RESULT = new FnDeclNode(t, i, fl, fb);
+                :};
+
+formalDecl      ::= type:t id:i
+                {:
+                  RESULT = new FormalDeclNode(t, i);
+                :};
+
+structDecl      ::= STRUCT id:i LCURLY structBody:sb RCURLY
+                {:
+                  RESULT = new StructDeclNode(i, new DeclListNode(sb));
+                :};
+
+structBody      ::= structBody:sb varDecl:v
+                {:
+                  sb.addLast(v);
+                  RESULT = sb;
+                :}
+                | varDecl:v
+                {:
+                  LinkedList<VarDeclNode> values = new LinkedList<VarDeclNode>();
+                  values.addLast(v);
+                  RESULT = values;
+                :}
+
 decl            ::= varDecl:v
                 {:
                   RESULT = v;
+                :}
+                | formalDecl:fm
+                {:
+                  RESULT = fm;
+                :}
+                | fnDecl:fn
+                {:
+                  RESULT = fn;
+                :}
+                | structDecl:st
+                {:
+                  RESULT = st;
                 :};
 
 varDecl         ::= type:t id:i SEMICOLON
@@ -215,18 +306,3 @@ strLit          ::= STRINGLITERAL:s
                 {:
                   RESULT = new StrLitNode(s.linenum, s.charnum, s.strVal);
                 :};
-
-/*
- * Grammar for list nodes
- */
-expList       ::= expList:el 
-
-declList      ::= declList:dl decl:d
-              {:
-                dl.add(d);
-                RESULT = dl;
-              :}
-              |
-              {: 
-                RESULT = new DeclListNode();
-              :};
