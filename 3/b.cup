@@ -67,25 +67,11 @@ terminal                LESSEQ;
 terminal                GREATEREQ;
 terminal                ASSIGN;
 
-
-/* Nonterminals
- *
- * NOTE: You will need to add more nonterminals to this list as you
- *       add productions to the grammar below.
+/*
+ * Nonterminals
  */
 non terminal ProgramNode      program;
-
-/*
- * Leaf nodes
- */
-non terminal IdNode         id;
-non terminal IntNode        int;
-non terminal TrueNode       true;
-non terminal BoolNode       bool;
-non terminal VoidNode       void;
-non terminal FalseNode      false;
-non terminal IntLitNode     intLit;
-non terminal StrLitNode     strLit;
+non terminal FnBodyNode       fnBody;
 
 /*
  * List nodes
@@ -104,11 +90,61 @@ non terminal VarDeclNode      varDecl;
 non terminal FormalDeclNode   formalDecl;
 non terminal StructDeclNode   structDecl;
 
-
+/*
+ * Type nodes
+ */
 non terminal TypeNode         type;
- 
-/* NOTE: Add precedence and associativity declarations here */
+non terminal IntNode          int;
+non terminal BoolNode         bool;
+non terminal VoidNode         void;
+non terminal StructNode       struct;
 
+/*
+ * Statement nodes
+ */
+ non terminal StmtNode          stmt;
+ non terminal AssignStmtNode    assignStmt;
+ non terminal PreIncStmtNode    preIncStmt;
+ non terminal PreDecStmtNode    preDecStmt;
+ non terminal ReceiveStmtNode   receiveStmt;
+ non terminal PrintStmtNode     printStmt;
+ non terminal IfStmtNode        ifStmt;
+ non terminal IfElseStmtNode    ifElseStmt;
+ non terminal WhileStmtNode     whileStmt;
+ non terminal RepeatStmtNode    repeatStmt;
+ non terminal CallStmtNode      callStmt;
+ non terminal ReturnStmtNode    returnStmt;
+ 
+ /*
+  * Expression nodes
+  */
+non terminal ExpNode        exp;
+non terminal IntLitNode     intLit;
+non terminal StrLitNode     strLit;
+non terminal TrueNode       true;
+non terminal FalseNode      false;
+non terminal IdNode         id;
+non terminal DotAccessNode  dotAccess;
+non terminal AssignNode     assign;
+non terminal CallExpNode    callExp;
+non terminal UnaryExpNode   unaryExp;
+non terminal UnaryMinusNode unaryMinus;
+non terminal NotNode        not;
+non terminal BinaryExpNode  binaryExp;
+non terminal PlusNode       plus;
+non terminal MinusNode      minus;
+non terminal TimesNode      times;
+non terminal DivideNode     divide;
+non terminal AndNode        and;
+non terminal OrNode         or;
+non terminal EqualsNode     equals;
+non terminal NotEqualsNode  notEquals;
+non terminal LessNode       less;
+non terminal GreaterNode    greater;
+non terminal LessEqNode     lessEqual;
+non terminal GreaterEqNode  greaterEqual;
+
+/* NOTE: Add precedence and associativity declarations here */
 
 start with program;
 
@@ -120,16 +156,6 @@ start with program;
 program         ::= declList:d
                 {:
                   RESULT = new ProgramNode(d);
-                :};
-
-declList        ::= declList:dl decl:d
-                {:
-                  dl.add(d);
-                  RESULT = dl;
-                :}
-                | /* epsilon */
-                {: 
-                  RESULT = new DeclListNode();
                 :};
 
 decl            ::= varDecl:v
@@ -189,3 +215,18 @@ strLit          ::= STRINGLITERAL:s
                 {:
                   RESULT = new StrLitNode(s.linenum, s.charnum, s.strVal);
                 :};
+
+/*
+ * Grammar for list nodes
+ */
+expList       ::= expList:el 
+
+declList      ::= declList:dl decl:d
+              {:
+                dl.add(d);
+                RESULT = dl;
+              :}
+              |
+              {: 
+                RESULT = new DeclListNode();
+              :};
