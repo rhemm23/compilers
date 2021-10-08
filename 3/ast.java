@@ -113,7 +113,7 @@ abstract class ASTnode {
 
   // This method can be used by the unparse methods to add indents
   protected void addIndent(PrintWriter code, int indent) {
-    for (int k=0; k < indent; k++) {
+    for (int k = 0; k < indent; k++) {
       code.print(" ");
     }
   }
@@ -146,16 +146,13 @@ class DeclListNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    Iterator iterator = myDecls.iterator();
-    try {
-      while (it.hasNext()) {
-        DeclNode declNode = (DeclNode)iterator.next();
-        declNode.unparse(code, indent);
-      }
-    } catch (NoSuchElementException ex) {
-      System.err.println("Unexpected NoSuchElementException in DeclListNode.print");
-      System.exit(-1);
+    for (DeclNode declaration : this.declarations) {
+      declaration.unparse(code, indent);
     }
+  }
+
+  public int getNumberOfDeclarations() {
+    return this.declarations.size();
   }
 }
 
@@ -167,22 +164,32 @@ class FormalsListNode extends ASTnode {
     this.formals = formals;
   }
 
-  public void unparse(PrintWriter p, int indent) {
+  public void unparse(PrintWriter code, int indent) {
+    for (int i = 0; i < this.formals.size(); i++) {
+      if (i > 0) {
+        code.print(", ");
+      }
+      this.formals.get(i).unparse(code, indent);
+    }
   }
 }
 
 class FnBodyNode extends ASTnode {
-    public FnBodyNode(DeclListNode declList, StmtListNode stmtList) {
-        myDeclList = declList;
-        myStmtList = stmtList;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private DeclListNode declarations;
+  private StmtListNode statements;
+    
+  public FnBodyNode(DeclListNode declarations, StmtListNode statements) {
+    this.declarations = declarations;
+    this.statements = statements;
+  }
 
-    // 2 kids
-    private DeclListNode myDeclList;
-    private StmtListNode myStmtList;
+  public void unparse(PrintWriter code, int indent) {
+    code.print("{");
+    if (this.declarations.getNumberOfDeclarations() > 0) {
+
+    }
+  }
 }
 
 class StmtListNode extends ASTnode {
@@ -217,11 +224,20 @@ abstract class DeclNode extends ASTnode {
 }
 
 class VarDeclNode extends DeclNode {
-    public VarDeclNode(TypeNode type, IdNode id, int size) {
-        myType = type;
-        myId = id;
-        mySize = size;
-    }
+
+  private IdNode structId;
+  private TypeNode type;
+  private IdNode id;
+
+  public VarDeclNode(TypeNode type, IdNode id) {
+    this.structId = null;
+    this.type = type;
+    this.id = id;
+  }
+
+  public VarDeclNode(TypeNode structType, TypeNode type, IdNode id) {
+    this.structId = stru
+  }
 
     public void unparse(PrintWriter p, int indent) {
         addIndent(p, indent);
@@ -230,62 +246,73 @@ class VarDeclNode extends DeclNode {
         myId.unparse(p, 0);
         p.println(";");
     }
-
-    // 3 kids
-    private TypeNode myType;
-    private IdNode myId;
-    private int mySize;  // use value NOT_STRUCT if this is not a struct type
-
-    public static int NOT_STRUCT = -1;
 }
 
 class FnDeclNode extends DeclNode {
-    public FnDeclNode(TypeNode type,
-                      IdNode id,
-                      FormalsListNode formalList,
-                      FnBodyNode body) {
-        myType = type;
-        myId = id;
-        myFormalsList = formalList;
-        myBody = body;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private FormatsListNode formals;
+  private FnBodyNode body;
+  private TypeNode type;
+  private IdNode id;
 
-    // 4 kids
-    private TypeNode myType;
-    private IdNode myId;
-    private FormalsListNode myFormalsList;
-    private FnBodyNode myBody;
+  public FnDeclNode(
+    TypeNode type,
+    IdNode id,
+    FormalsListNode formals,
+    FnBodyNode body
+  ) {
+    this.formals = formals;
+    this.body = body;
+    this.type = type;
+    this.id = id;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    super.addIndent(code, indent);
+    this.type.unparse(code, indent);
+    code.print(" ");
+    this.id.unparse(code, indent);
+    code.print(" (");
+    this.formals.unparse(code, indent);
+    code.print(") ");
+    this.body.unparse(code, indent);
+  }
 }
 
 class FormalDeclNode extends DeclNode {
-    public FormalDeclNode(TypeNode type, IdNode id) {
-        myType = type;
-        myId = id;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private TypeNode type;
+  private IdNode id;
 
-    // 2 kids
-    private TypeNode myType;
-    private IdNode myId;
+  public FormalDeclNode(TypeNode type, IdNode id) {
+    this.type = type;
+    this.id = id;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.type.unparse(code, indent);
+    code.print(" ");
+    this.id.unparse(code, indent);
+  }
 }
 
 class StructDeclNode extends DeclNode {
-    public StructDeclNode(IdNode id, DeclListNode declList) {
-        myId = id;
-		myDeclList = declList;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private DeclListNode declarations;
+  private IdNode id;
 
-    // 2 kids
-    private IdNode myId;
-	private DeclListNode myDeclList;
+  public StructDeclNode(IdNode id, DeclListNode declarations) {
+    this.declarations = declarations;
+    this.id = id;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("struct ");
+    this.id.unparse(code, indent);
+    code.print("{");
+    this.declarations.unparse(code, indent);
+    code.print("}");
+  }
 }
 
 // **********************************************************************
@@ -470,196 +497,227 @@ class RepeatStmtNode extends StmtNode {
 }
 
 class CallStmtNode extends StmtNode {
-    public CallStmtNode(CallExpNode call) {
-        myCall = call;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private CallExpNode callExpression;
 
-    // 1 kid
-    private CallExpNode myCall;
+  public CallStmtNode(CallExpNode callExpression) {
+    this.callExpression = callExpression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.callExpression.unparse(code, indent);
+    code.print(';');
+  }
 }
 
 class ReturnStmtNode extends StmtNode {
-    public ReturnStmtNode(ExpNode exp) {
-        myExp = exp;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode expression;
 
-    // 1 kid
-    private ExpNode myExp; // possibly null
+  public ReturnStmtNode(ExpNode expression) {
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("return");
+    if (this.expression != null) {
+      code.print(' ');
+      this.expression.unparse(code, indent);
+    }
+    code.print(';');
+  }
 }
 
 // **********************************************************************
-// ####ExpNode and its subclasses####
+// #### ExpNode and its subclasses ####
 // **********************************************************************
 
-abstract class ExpNode extends ASTnode {
-}
+abstract class ExpNode extends ASTnode { }
 
 class IntLitNode extends ExpNode {
-    public IntLitNode(int lineNum, int charNum, int intVal) {
-        myLineNum = lineNum;
-        myCharNum = charNum;
-        myIntVal = intVal;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private int charNum;
+  private int lineNum;
+  private int value;
 
-    private int myLineNum;
-    private int myCharNum;
-    private int myIntVal;
+  public IntLitNode(int lineNum, int charNum, int value) {
+    this.charNum = charNum;
+    this.lineNum = lineNum;
+    this.value = value;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print(this.value);
+  }
 }
 
 class StringLitNode extends ExpNode {
-    public StringLitNode(int lineNum, int charNum, String strVal) {
-        myLineNum = lineNum;
-        myCharNum = charNum;
-        myStrVal = strVal;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private String value;
+  private int charNum;
+  private int lineNum;
 
-    private int myLineNum;
-    private int myCharNum;
-    private String myStrVal;
+  public StringLitNode(int lineNum, int charNum, String value) {
+    this.charNum = charNum;
+    this.lineNum = lineNum;
+    this.value = value;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.printf("\"%s\"", this.value);
+  }
 }
 
 class TrueNode extends ExpNode {
-    public TrueNode(int lineNum, int charNum) {
-        myLineNum = lineNum;
-        myCharNum = charNum;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private int charNum;
+  private int lineNum;
 
-    private int myLineNum;
-    private int myCharNum;
+  public TrueNode(int lineNum, int charNum) {
+    this.charNum = charNum;
+    this.lineNum = lineNum;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("true");
+  }
 }
 
 class FalseNode extends ExpNode {
-    public FalseNode(int lineNum, int charNum) {
-        myLineNum = lineNum;
-        myCharNum = charNum;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private int charNum;
+  private int lineNum;
 
-    private int myLineNum;
-    private int myCharNum;
+  public FalseNode(int lineNum, int charNum) {
+    this.charNum = charNum;
+    this.lineNum = lineNum;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print("false");
+  }
 }
 
 class IdNode extends ExpNode {
-    public IdNode(int lineNum, int charNum, String strVal) {
-        myLineNum = lineNum;
-        myCharNum = charNum;
-        myStrVal = strVal;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-        p.print(myStrVal);
-    }
+  private String value;
+  private int charNum;
+  private int lineNum;
 
-    private int myLineNum;
-    private int myCharNum;
-    private String myStrVal;
+  public IdNode(int lineNum, int charNum, String value) {
+    this.charNum = charNum;
+    this.lineNum = lineNum;
+    this.value = value;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print(this.value);
+  }
 }
 
 class DotAccessExpNode extends ExpNode {
-    public DotAccessExpNode(ExpNode loc, IdNode id) {
-        myLoc = loc;	
-        myId = id;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode accessor;
+  private IdNode id;
 
-    // 2 kids
-    private ExpNode myLoc;	
-    private IdNode myId;
+  public DotAccessExpNode(ExpNode accessor, IdNode id) {
+    this.accessor = accessor;
+    this.id = id;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.accessor.unparse(code, indent);
+    code.print('.');
+    this.id.unparse(code, indent);
+  }
 }
 
 class AssignNode extends ExpNode {
-    public AssignNode(ExpNode lhs, ExpNode exp) {
-        myLhs = lhs;
-        myExp = exp;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private ExpNode leftHandSide;
+  private ExpNode expression;
 
-    // 2 kids
-    private ExpNode myLhs;
-    private ExpNode myExp;
+  public AssignNode(ExpNode leftHandSide, ExpNode expression) {
+    this.leftHandSide = leftHandSide;
+    this.expression = expression;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.leftHandSide.unparse(code, indent);
+    code.print(" = ");
+    this.expression.unparse(code, indent);
+  }
 }
 
 class CallExpNode extends ExpNode {
-    public CallExpNode(IdNode name, ExpListNode elist) {
-        myId = name;
-        myExpList = elist;
-    }
 
-    public CallExpNode(IdNode name) {
-        myId = name;
-        myExpList = new ExpListNode(new LinkedList<ExpNode>());
-    }
+  private ExpListNode parameterExpressions;
+  private IdNode methodId;
 
-    // ** unparse **
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public CallExpNode(IdNode methodId, ExpListNode parameterExpressions) {
+    this.parameterExpressions = parameterExpressions;
+    this.methodId = methodId;
+  }
 
-    // 2 kids
-    private IdNode myId;
-    private ExpListNode myExpList;  // possibly null
+  public CallExpNode(IdNode methodId) {
+    this.parameterExpressions = new ExpListNode(new LinkedList<ExpNode>());
+    this.methodId = methodId;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.methodId.unparse(code, indent);
+    code.print('(');
+    this.parameterExpressions.unparse(code, indent);
+    code.print(')');
+  }
 }
 
 abstract class UnaryExpNode extends ExpNode {
-    public UnaryExpNode(ExpNode exp) {
-        myExp = exp;
-    }
 
-    // one child
-    protected ExpNode myExp;
+  protected ExpNode exp;
+
+  public UnaryExpNode(ExpNode exp) {
+    this.exp = exp;
+  }
 }
 
 abstract class BinaryExpNode extends ExpNode {
-    public BinaryExpNode(ExpNode exp1, ExpNode exp2) {
-        myExp1 = exp1;
-        myExp2 = exp2;
-    }
 
-    // two kids
-    protected ExpNode myExp1;
-    protected ExpNode myExp2;
+  protected ExpNode exp1;
+  protected ExpNode exp2;
+
+  public BinaryExpNode(ExpNode exp1, ExpNode exp2) {
+    this.exp1 = exp1;
+    this.exp2 = exp2;
+  }
 }
 
 // **********************************************************************
-// ####Subclasses of UnaryExpNode####
+// #### Subclasses of UnaryExpNode ####
 // **********************************************************************
 
 class UnaryMinusNode extends UnaryExpNode {
-    public UnaryMinusNode(ExpNode exp) {
-        super(exp);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public UnaryMinusNode(ExpNode exp) {
+    super(exp);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print('-');
+    this.exp.unparse(code, indent);
+  }
 }
 
 class NotNode extends UnaryExpNode {
-    public NotNode(ExpNode exp) {
-        super(exp);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public NotNode(ExpNode exp) {
+    super(exp);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    code.print('!');
+    this.exp.unparse(code, indent);
+  }
 }
 
 // **********************************************************************
@@ -667,109 +725,157 @@ class NotNode extends UnaryExpNode {
 // **********************************************************************
 
 class PlusNode extends BinaryExpNode {
-    public PlusNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public PlusNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" + ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class MinusNode extends BinaryExpNode {
-    public MinusNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public MinusNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" - ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class TimesNode extends BinaryExpNode {
-    public TimesNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public TimesNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" * ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class DivideNode extends BinaryExpNode {
-    public DivideNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public DivideNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" / ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class AndNode extends BinaryExpNode {
-    public AndNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public AndNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" && ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class OrNode extends BinaryExpNode {
-    public OrNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public OrNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" || ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class EqualsNode extends BinaryExpNode {
-    public EqualsNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public EqualsNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" == ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class NotEqualsNode extends BinaryExpNode {
-    public NotEqualsNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public NotEqualsNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" != ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class LessNode extends BinaryExpNode {
-    public LessNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public LessNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" < ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class GreaterNode extends BinaryExpNode {
-    public GreaterNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public GreaterNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" > ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class LessEqNode extends BinaryExpNode {
-    public LessEqNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public LessEqNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" <= ");
+    this.exp2.unparse(code, indent);
+  }
 }
 
 class GreaterEqNode extends BinaryExpNode {
-    public GreaterEqNode(ExpNode exp1, ExpNode exp2) {
-        super(exp1, exp2);
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  public GreaterEqNode(ExpNode exp1, ExpNode exp2) {
+    super(exp1, exp2);
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    this.exp1.unparse(code, indent);
+    code.print(" >= ");
+    this.exp2.unparse(code, indent);
+  }
 }
