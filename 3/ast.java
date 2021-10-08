@@ -570,6 +570,7 @@ class WhileStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
     code.print("while (");
     this.expression.unparse(code, 0);
     code.println(") {");
@@ -596,6 +597,7 @@ class RepeatStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
     code.print("repeat (");
     this.expression.unparse(code, 0);
     code.println(") {");
@@ -614,6 +616,7 @@ class CallStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
     this.callExpression.unparse(code, indent);
     code.println(';');
   }
@@ -630,6 +633,7 @@ class ReturnStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
     code.print("return");
     if (this.expression != null) {
       code.print(' ');
