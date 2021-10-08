@@ -80,6 +80,7 @@ non terminal ExpListNode      expList;
 non terminal StmtListNode     stmtList;
 non terminal DeclListNode     declList;
 non terminal FormalsListNode  formalsList;
+non terminal LinkedList       varDeclList;
 
 /*
  * Declarations
@@ -89,7 +90,6 @@ non terminal FnDeclNode       fnDecl;
 non terminal VarDeclNode      varDecl;
 non terminal FormalDeclNode   formalDecl;
 non terminal StructDeclNode   structDecl;
-non terminal LinkedList       structBody;
 
 /*
  * Type nodes
@@ -201,6 +201,16 @@ formalsList       ::= formalsList:fl formalDecl:f
                     RESULT = new FormalsListNode();
                   :};
 
+varDeclList     ::= varDeclList:vd varDecl:v
+                {:
+                  vd.add(v);
+                  RESULT = vd;
+                :}
+                | varDecl:v
+                {:
+                  RESULT = new DeclListNode(new LinkedList<VarDeclNode>() { v });
+                :}
+
 /*
  * Grammar for declarations
  */
@@ -220,22 +230,10 @@ formalDecl      ::= type:t id:i
                   RESULT = new FormalDeclNode(t, i);
                 :};
 
-structDecl      ::= STRUCT id:i LCURLY structBody:sb RCURLY
+structDecl      ::= STRUCT id:i LCURLY varDeclList:dl RCURLY
                 {:
-                  RESULT = new StructDeclNode(i, new DeclListNode(sb));
+                  RESULT = new StructDeclNode(i, dl);
                 :};
-
-structBody      ::= structBody:sb varDecl:v
-                {:
-                  sb.addLast(v);
-                  RESULT = sb;
-                :}
-                | varDecl:v
-                {:
-                  LinkedList<VarDeclNode> values = new LinkedList<VarDeclNode>();
-                  values.addLast(v);
-                  RESULT = values;
-                :}
 
 decl            ::= varDecl:v
                 {:
@@ -254,32 +252,12 @@ decl            ::= varDecl:v
                   RESULT = st;
                 :};
 
-varDecl         ::= type:t id:i SEMICOLON
-                {:
-                  RESULT = new VarDeclNode(t, i, VarDeclNode.NOT_STRUCT);
-                :};
-
-type            ::= INT
-                {: RESULT = new IntNode();
-                :}
-                ;
-
 /*
- * Grammar for leaf nodes
+ * Grammar for type nodes
  */
-id              ::= ID:i
-                {:
-                  RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
-                :};
-
 int             ::= INT
                 {:
                   RESULT = new IntNode();
-                :};
-
-true            ::= TRUE
-                {:
-                  RESULT = new TrueNode();
                 :};
 
 bool            ::= BOOL
@@ -292,17 +270,116 @@ void            ::= VOID
                   RESULT = new VoidNode();
                 :};
 
-false           ::= FALSE
+struct          ::= STRUCT id:i
                 {:
-                  RESULT = new FalseNode();
+                  RESULT = new StructNode(i);
                 :};
 
-intLit          ::= INTLITERAL:il
-                {:
-                  RESULT = new IntLitNode(il.linenum, il.charnum, il.intVal);
-                :};
+/*
+ * Grammar for statement nodes
+ */
+assignStmt        ::= assign:a SEMICOLON
+                  {:
+                    RESULT = a;
+                  :}
 
-strLit          ::= STRINGLITERAL:s
-                {:
-                  RESULT = new StrLitNode(s.linenum, s.charnum, s.strVal);
-                :};
+preIncStmt        ::= PLUSPLUS exp:e SEMICOLON
+                  {:
+                    RESULT = new PreIncStmtNode(e);
+                  :};
+
+preDecStmt        ::= MINUSMINUS exp:e SEMICOLON
+                  {:
+                    RESULT = new PreDecStmtNode(e);
+                  :}
+
+receiveStmt       ::= RECEIVE READ exp:e SEMICOLON
+                  {:
+                    RESULT = new ReceiveStmtNode(e);
+                  :};
+
+printStmt         ::= PRINT WRITE exp:e SEMICOLON
+                  {:
+                    RESULT = new PrintStmtNode(e);
+                  :};
+
+ifStmt            ::= IF exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
+                  {:
+                    RESULT = new IfStmtNode(e, dl, sl);
+                  :}
+
+ifElseStmt        ::= IF exp:e LCURLY varDeclList:dl1 stmtList:sl1 RCURLY ELSE LCURLY varDeclList:dl2 stmtList:sl2 RCURLY
+                  {:
+                    RESULT = new IfElseStmtNode(e, dl1, sl1, dl2, sl2);
+                  :}
+
+whileStmt         ::= WHILE exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
+                  {:
+                    RESULT = new WhileStmtNode(e, dl, sl);
+                  :};
+
+repeatStmt        ::= REPEAT exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
+                  {:
+                    RESULT = new RepeatStmtNode(e, dl, sl);
+                  :};
+
+returnStmt        ::= RETURN exp:e SEMICOLON
+                  {:
+                    RESULT = new ReturnStmtNode(e);
+                  :}
+                  | RETURN SEMICOLON
+                  {:
+                    RESULT = new ReturnStmtNode();
+                  :};
+
+callStmt          ::= callExp:ce SEMICOLON
+                  {:
+                    RESULT = new CallStmtNode();
+                  :};
+
+stmt              ::= assignStmt:assign
+                  {:
+                    RESULT = assign;
+                  :}
+                  | preIncStmt:preInc
+                  {:
+                    RESULT = preInc;
+                  :}
+                  | preDecStmt:preDec
+                  {:
+                    RESULT = preDec;
+                  :}
+                  | receiveStmt:recv
+                  {:
+                    RESULT = recv;
+                  :}
+                  | printStmt:print
+                  {:
+                    RESULT = print;
+                  :}
+                  | ifStmt:ifs
+                  {:
+                    RESULT = ifs;
+                  :}
+                  | ifElseStmt:ifes
+                  {:
+                    RESULT = ifes;
+                  :}
+                  | whileStmt:whl
+                  {:
+                    RESULT = whl;
+                  :}
+                  | repeatStmt:rep
+                  {:
+                    RESULT = rep;
+                  :}
+                  | callStmt:cll
+                  {:
+                    RESULT = cll;
+                  :}
+                  | returnStmt:ret
+                  {:
+                    RESULT = ret;
+                  :};
+
+

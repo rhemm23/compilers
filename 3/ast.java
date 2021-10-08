@@ -121,8 +121,8 @@ abstract class ASTnode {
 }
 
 // **********************************************************************
-// ####ProgramNode,  DeclListNode, FormalsListNode, FnBodyNode,
-// StmtListNode, ExpListNode####
+// #### ProgramNode, DeclListNode, FormalsListNode, FnBodyNode,
+// StmtListNode, ExpListNode ####
 // **********************************************************************
 
 class ProgramNode extends ASTnode {
@@ -140,7 +140,7 @@ class ProgramNode extends ASTnode {
 
 class DeclListNode extends ASTnode {
 
-  private List<DeclNode> declarations;
+  protected List<DeclNode> declarations;
 
   public DeclListNode() {
     this.declarations = new LinkedList<DeclNode>();
@@ -613,6 +613,8 @@ class CallStmtNode extends StmtNode {
 class ReturnStmtNode extends StmtNode {
 
   private ExpNode expression;
+
+  public ReturnStmtNode() { }
 
   public ReturnStmtNode(ExpNode expression) {
     this.expression = expression;
