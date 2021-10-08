@@ -147,8 +147,45 @@ type            ::= INT
                 :}
                 ;
 
+/*
+ * Grammar for leaf nodes
+ */
 id              ::= ID:i
-                {: RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
-                :}
-                ;
-				
+                {:
+                  RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
+                :};
+
+int             ::= INT
+                {:
+                  RESULT = new IntNode();
+                :};
+
+true            ::= TRUE
+                {:
+                  RESULT = new TrueNode();
+                :};
+
+bool            ::= BOOL
+                {:
+                  RESULT = new BoolNode();
+                :};
+
+void            ::= VOID
+                {:
+                  RESULT = new VoidNode();
+                :};
+
+false           ::= FALSE
+                {:
+                  RESULT = new FalseNode();
+                :};
+
+intLit          ::= INTLITERAL:il
+                {:
+                  RESULT = new IntLitNode(il.linenum, il.charnum, il.intVal);
+                :};
+
+strLit          ::= STRINGLITERAL:s
+                {:
+                  RESULT = new StrLitNode(s.linenum, s.charnum, s.strVal);
+                :};
