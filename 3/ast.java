@@ -165,7 +165,7 @@ class FormalsListNode extends ASTnode {
 
   private List<FormalDeclNode> formals;
 
-  public FormatsListNode() {
+  public FormalsListNode() {
     this.formals = new LinkedList<FormalDeclNode>();
   }
 
@@ -302,7 +302,7 @@ class VarDeclNode extends DeclNode {
 
 class FnDeclNode extends DeclNode {
 
-  private FormatsListNode formals;
+  private FormalsListNode formals;
   private FnBodyNode body;
   private TypeNode type;
   private IdNode id;

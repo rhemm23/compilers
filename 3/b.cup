@@ -93,6 +93,14 @@ non terminal TypeNode         type;
 non terminal ExpNode          loc;
 non terminal IdNode           id;
 
+precedence left NOT;
+precedence left TIMES, DIVIDE;
+precedence left PLUS, MINUS;
+precedence nonassoc LESS, GREATER, LESSEQ, GREATEREQ, EQUALS, NOTEQUALS;
+precedence left AND;
+precedence left OR;
+precedence left ASSIGN;
+
 start with program;
 
 program         ::= declList:d
@@ -133,6 +141,15 @@ varDeclList     ::= varDeclList:vdl varDecl:v
                   RESULT = new DeclListNode();
                 :};
 
+varDecl         ::= type:t id:i SEMICOLON
+                {:
+                  RESULT = new VarDeclNode(t, i);
+                :}
+                | STRUCT id:i1 id:i2 SEMICOLON
+                {:
+                  RESULT = new VarDeclNode(i1, i2);
+                :};
+
 fnDecl          ::= type:t id:i formals:f fnBody:b
                 {:
                   RESULT = new FnDeclNode(t, i, f, b);
@@ -150,7 +167,9 @@ structBody      ::= structBody:b varDecl:v
                 :}
                 | varDecl:v
                 {:
-                  RESULT = new DeclListNode(new LinkedList<DeclNode>() { v });
+                  LinkedList<DeclNode> decls = new LinkedList<DeclNode>();
+                  decls.add(v);
+                  RESULT = new DeclListNode(decls);
                 :};
 
 formals         ::= LPAREN RPAREN
@@ -159,16 +178,18 @@ formals         ::= LPAREN RPAREN
                 :}
                 | LPAREN formalsList:f RPAREN
                 {:
-                  RESULT = f
+                  RESULT = new FormalsListNode(f);
                 :};
 
 formalsList     ::= formalDecl:f
                 {:
-                  RESULT = new FormalsListNode(new LinkedList<FormalDeclNode>() { f });
+                  LinkedList<FormalDeclNode> formals = new LinkedList<FormalDeclNode>();
+                  formals.add(f);
+                  RESULT = formals;
                 :}
                 | formalDecl:d COMMA formalsList:fl
                 {:
-                  fl.add(d)
+                  fl.add(d);
                   RESULT = fl;
                 :};
 
@@ -239,7 +260,7 @@ stmt            ::= assignExp:a SEMICOLON
                 | fncall:f SEMICOLON
                 {:
                   RESULT = new CallStmtNode(f);
-                :}
+                :};
 
 assignExp       ::= loc:l ASSIGN exp:e
                 {:
@@ -321,15 +342,17 @@ term            ::= loc:l
                 :}
                 | STRINGLITERAL:sl
                 {:
-                  RESULT = new StrLitNode(sl.linenum, sl.charnum, sl.strVal);
+                  RESULT = new StringLitNode(sl.linenum, sl.charnum, sl.strVal);
                 :}
                 | TRUE:t
                 {:
-                  RESULT = new TrueNode(t.linenum, t.charnum);
+                  TokenVal token = (TokenVal)t;
+                  RESULT = new TrueNode(token.linenum, token.charnum);
                 :}
                 | FALSE:f
                 {:
-                  RESULT = new FalseNode(f.linenum, f.charnum);
+                  TokenVal token = (TokenVal)f;
+                  RESULT = new FalseNode(token.linenum, token.charnum);
                 :}
                 | LPAREN exp:e RPAREN
                 {:
@@ -351,13 +374,15 @@ fncall          ::= id:i LPAREN RPAREN
 
 actualList      ::= exp:e
                 {:
-                  RESULT = new ExpListNode(new LinkedList<ExpNode>() { e });
+                  List<ExpNode> exprs = new LinkedList<ExpNode>();
+                  exprs.add(e);
+                  RESULT = new ExpListNode(exprs);
                 :}
                 | actualList:l COMMA exp:e
                 {:
                   l.add(e);
                   RESULT = l;
-                :}
+                :};
 
 type            ::= INT
                 {:
