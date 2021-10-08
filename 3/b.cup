@@ -10,21 +10,21 @@ import java.util.*;
  */
 parser code {:
 
-public void syntax_error(Symbol currToken) {
+  public void syntax_error(Symbol currToken) {
     if (currToken.value == null) {
-        ErrMsg.fatal(0,0, "Syntax error at end of file");
-    }
-    else {
-        ErrMsg.fatal(((TokenVal)currToken.value).linenum,
-                     ((TokenVal)currToken.value).charnum,
-                     "Syntax error");
+      ErrMsg.fatal(0, 0, "Syntax error at end of file");
+    } else {
+      TokenVal token = (TokenVal)currToken.value;
+      ErrMsg.fatal(token.linenum, token.charnum, "Syntax error");
     }
     System.exit(-1);
-}
+  }
 :};
 
 
-/* Terminals (tokens returned by the scanner) */
+/*
+ * Terminal symbols
+ */
 terminal                INT;
 terminal                BOOL;
 terminal                VOID;
@@ -67,6 +67,9 @@ terminal                LESSEQ;
 terminal                GREATEREQ;
 terminal                ASSIGN;
 
+/*
+ * Non-terminal symbols
+ */
 non terminal ProgramNode      program;
 non terminal DeclListNode     declList;
 non terminal DeclNode         decl;
@@ -308,4 +311,77 @@ exp             ::= assignExp:a
                   RESULT = t;
                 :};
 
+term            ::= loc:l
+                {:
+                  RESULT = l;
+                :}
+                | INTLITERAL:il
+                {:
+                  RESULT = new IntLitNode(il.linenum, il.charnum, il.intVal);
+                :}
+                | STRINGLITERAL:sl
+                {:
+                  RESULT = new StrLitNode(sl.linenum, sl.charnum, sl.strVal);
+                :}
+                | TRUE:t
+                {:
+                  RESULT = new TrueNode(t.linenum, t.charnum);
+                :}
+                | FALSE:f
+                {:
+                  RESULT = new FalseNode(f.linenum, f.charnum);
+                :}
+                | LPAREN exp:e RPAREN
+                {:
+                  RESULT = e;
+                :}
+                | fncall:f
+                {:
+                  RESULT = f;
+                :};
 
+fncall          ::= id:i LPAREN RPAREN
+                {:
+                  RESULT = new CallExpNode(i);
+                :}
+                | id:i LPAREN actualList:l RPAREN
+                {:
+                  RESULT = new CallExpNode(i, l);
+                :};
+
+actualList      ::= exp:e
+                {:
+                  RESULT = new ExpListNode(new LinkedList<ExpNode>() { e });
+                :}
+                | actualList:l COMMA exp:e
+                {:
+                  l.add(e);
+                  RESULT = l;
+                :}
+
+type            ::= INT
+                {:
+                  RESULT = new IntNode();
+                :}
+                | BOOL
+                {:
+                  RESULT = new BoolNode();
+                :}
+                | VOID
+                {:
+                  RESULT = new VoidNode();
+                :};
+
+loc             ::= id:i
+                {:
+                  RESULT = i;
+                :}
+                | loc:l DOT id:i
+                {:
+                  RESULT = new DotAccessExpNode(l, i);
+                :};
+            
+id              ::= ID:i
+                {:
+                  RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
+                :};
