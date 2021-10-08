@@ -263,3 +263,49 @@ exp             ::= assignExp:a
                 {:
                   RESULT = new DivideNode(e1, e2);
                 :}
+                | NOT exp:e
+                {:
+                  RESULT = new NotNode(e);
+                :}
+                | exp:e1 AND exp:e2
+                {:
+                  RESULT = new AndNode(e1, e2);
+                :}
+                | exp:e1 OR exp:e2
+                {:
+                  RESULT = new OrNode(e1, e2);
+                :}
+                | exp:e1 EQUALS exp:e2
+                {:
+                  RESULT = new EqualsNode(e1, e2);
+                :}
+                | exp:e1 NOTEQUALS exp:e2
+                {:
+                  RESULT = new NotEqualsNode(e1, e2);
+                :}
+                | exp:e1 LESS exp:e2
+                {:
+                  RESULT = new LessNode(e1, e2);
+                :}
+                | exp:e1 GREATER exp:e2
+                {:
+                  RESULT = new GreaterNode(e1, e2);
+                :}
+                | exp:e1 LESSEQ exp:e2
+                {:
+                  RESULT = new LessEqNode(e1, e2);
+                :}
+                | exp:e1 GREATEREQ exp:e2
+                {:
+                  RESULT = new GreaterEqNode(e1, e2);
+                :}
+                | MINUS term:t
+                {:
+                  RESULT = new UnaryMinusNode(t);
+                :}
+                | term:t
+                {:
+                  RESULT = t;
+                :};
+
+
