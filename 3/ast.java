@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.IDN;
 import java.util.*;
 
 // **********************************************************************
@@ -150,10 +151,6 @@ class DeclListNode extends ASTnode {
       declaration.unparse(code, indent);
     }
   }
-
-  public int getNumberOfDeclarations() {
-    return this.declarations.size();
-  }
 }
 
 class FormalsListNode extends ASTnode {
@@ -192,27 +189,33 @@ class FnBodyNode extends ASTnode {
 }
 
 class StmtListNode extends ASTnode {
-    public StmtListNode(List<StmtNode> S) {
-        myStmts = S;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private List<StmtNode> statements;
 
-    // list of kids (StmtNodes)
-    private List<StmtNode> myStmts;
+  public StmtListNode(List<StmtNode> statements) {
+    this.statements = statements;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    for (StmtNode statement : this.statements) {
+      statement.unparse(code, indent);
+    }
+  }
 }
 
 class ExpListNode extends ASTnode {
-    public ExpListNode(List<ExpNode> S) {
-        myExps = S;
-    }
 
-    public void unparse(PrintWriter p, int indent) {
-    }
+  private List<ExpNode> expressions;
 
-    // list of kids (ExpNodes)
-    private List<ExpNode> myExps;
+  public ExpListNode(List<ExpNode> expressions) {
+    this.expressions = expressions;
+  }
+
+  public void unparse(PrintWriter code, int indent) {
+    for (ExpNode expression : this.expressions) {
+      expression.unparse(code, indent);
+    }
+  }
 }
 
 // **********************************************************************
@@ -224,27 +227,45 @@ abstract class DeclNode extends ASTnode {
 
 class VarDeclNode extends DeclNode {
 
+  private enum VariableDeclarationType {
+    Struct,
+    NonStruct
+  }
+
+  private VariableDeclarationType variableDeclarationType;
   private IdNode structId;
   private TypeNode type;
   private IdNode id;
 
   public VarDeclNode(TypeNode type, IdNode id) {
+    this.variableDeclarationType = VariableDeclarationType.NonStruct;
     this.structId = null;
     this.type = type;
     this.id = id;
   }
 
-  public VarDeclNode(TypeNode structType, TypeNode type, IdNode id) {
-    this.structId = stru
+  public VarDeclNode(IdNode structId, IdNode id) {
+    this.variableDeclarationType = VariableDeclarationType.Struct;
+    this.structId = structId;
+    this.type = null;
+    this.id = id;
   }
 
-    public void unparse(PrintWriter p, int indent) {
-        addIndent(p, indent);
-        myType.unparse(p, 0);
-        p.print(" ");
-        myId.unparse(p, 0);
-        p.println(";");
+  public void unparse(PrintWriter code, int indent) {
+    if (this.variableDeclarationType == VariableDeclarationType.NonStruct) {
+      addIndent(code, indent);
+      this.type.unparse(code, 0);
+      code.print(" ");
+      this.id.unparse(code, 0);
+    } else {
+      addIndent(code, indent);
+      code.print("struct ");
+      this.structId.unparse(code, 0);
+      code.print(' ');
+      this.id.unparse(code, 0);
     }
+    code.println(";");
+  }
 }
 
 class FnDeclNode extends DeclNode {
