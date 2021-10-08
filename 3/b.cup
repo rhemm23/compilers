@@ -67,194 +67,49 @@ terminal                LESSEQ;
 terminal                GREATEREQ;
 terminal                ASSIGN;
 
-/*
- * Nonterminals
- */
 non terminal ProgramNode      program;
-non terminal FnBodyNode       fnBody;
-
-/*
- * List nodes
- */
-non terminal ExpListNode      actualList;
-non terminal ExpListNode      expList;
-non terminal StmtListNode     stmtList;
 non terminal DeclListNode     declList;
-non terminal FormalsListNode  formalsList;
-non terminal LinkedList       varDeclList;
-
-/*
- * Declarations
- */
 non terminal DeclNode         decl;
-non terminal FnDeclNode       fnDecl;
+non terminal DeclListNode     varDeclList;
 non terminal VarDeclNode      varDecl;
-non terminal FormalDeclNode   formalDecl;
+non terminal FnDeclNode       fnDecl;
 non terminal StructDeclNode   structDecl;
-
-/*
- * Type nodes
- */
+non terminal DeclListNode     structBody;
+non terminal FormalsListNode  formals;
+non terminal LinkedList       formalsList;
+non terminal FormalDeclNode   formalDecl;
+non terminal FnBodyNode       fnBody;
+non terminal StmtListNode     stmtList;
+non terminal StmtNode         stmt;
+non terminal AssignNode       assignExp;
+non terminal ExpNode          exp;
+non terminal ExpNode          term;
+non terminal CallExpNode      fncall;
+non terminal ExpListNode      actualList;
 non terminal TypeNode         type;
-non terminal IntNode          int;
-non terminal BoolNode         bool;
-non terminal VoidNode         void;
-non terminal StructNode       struct;
-
-/*
- * Statement nodes
- */
- non terminal StmtNode          stmt;
- non terminal AssignStmtNode    assignStmt;
- non terminal PreIncStmtNode    preIncStmt;
- non terminal PreDecStmtNode    preDecStmt;
- non terminal ReceiveStmtNode   receiveStmt;
- non terminal PrintStmtNode     printStmt;
- non terminal IfStmtNode        ifStmt;
- non terminal IfElseStmtNode    ifElseStmt;
- non terminal WhileStmtNode     whileStmt;
- non terminal RepeatStmtNode    repeatStmt;
- non terminal CallStmtNode      callStmt;
- non terminal ReturnStmtNode    returnStmt;
- 
- /*
-  * Expression nodes
-  */
-non terminal ExpNode        loc;
-non terminal ExpNode        term;
-non terminal ExpNode        exp;
-non terminal IntLitNode     intLit;
-non terminal StrLitNode     strLit;
-non terminal TrueNode       true;
-non terminal FalseNode      false;
-non terminal IdNode         id;
-non terminal DotAccessNode  dotAccess;
-non terminal AssignNode     assign;
-non terminal CallExpNode    callExp;
-non terminal UnaryExpNode   unaryExp;
-non terminal UnaryMinusNode unaryMinus;
-non terminal NotNode        not;
-non terminal BinaryExpNode  binaryExp;
-non terminal PlusNode       plus;
-non terminal MinusNode      minus;
-non terminal TimesNode      times;
-non terminal DivideNode     divide;
-non terminal AndNode        and;
-non terminal OrNode         or;
-non terminal EqualsNode     equals;
-non terminal NotEqualsNode  notEquals;
-non terminal LessNode       less;
-non terminal GreaterNode    greater;
-non terminal LessEqNode     lessEqual;
-non terminal GreaterEqNode  greaterEqual;
-
-/* NOTE: Add precedence and associativity declarations here */
+non terminal ExpNode          loc;
+non terminal IdNode           id;
 
 start with program;
 
-
-/*
- * Misc grammar
- */
 program         ::= declList:d
                 {:
                   RESULT = new ProgramNode(d);
                 :};
 
-/*
- * List grammar
- */
-expList           ::= expList:el exp:e
-                  {:
-                    el.add(e);
-                    RESULT = el;
-                  :}
-                  |
-                  {:
-                    RESULT = new ExpListNode();
-                  :};
-
-stmtList          ::= stmtList:sl stmt:s
-                  {:
-                    sl.add(s);
-                    RESULT = sl;
-                  :}
-                  |
-                  {:
-                    RESULT = new StmtListNode();
-                  :};
-
-declList          ::= declList:dl decl:d
-                  {:
-                    dl.add(d);
-                    RESULT = dl;
-                  :}
-                  |
-                  {: 
-                    RESULT = new DeclListNode();
-                  :};
-
-formalsList       ::= formalsList:fl formalDecl:f
-                  {:
-                    fl.add(f);
-                    RESULT = fl;
-                  :}
-                  |
-                  {: 
-                    RESULT = new FormalsListNode();
-                  :};
-
-varDeclList     ::= varDeclList:vd varDecl:v
+declList        ::= declList:dl decl:d
                 {:
-                  vd.add(v);
-                  RESULT = vd;
+                  dl.add(d);
+                  RESULT = dl;
                 :}
-                | varDecl:v
+                |
                 {:
-                  RESULT = new DeclListNode(new LinkedList<VarDeclNode>() { v });
-                :}
-
-actualList      ::= actualList:al COMMA exp:e
-                {:
-                  al.add(e);
-                  RESULT = al;
-                :}
-                | exp:e
-                {:
-                  RESULT = new ExpListNode(new LinkedList<ExpNode> { e });
-                :};
-
-/*
- * Grammar for declarations
- */
-
-varDecl         ::= type:t id:i SEMICOLON
-                {:
-                  RESULT = new VarDeclNode(t, i);
-                :};
-
-fnDecl          ::= type:t id:i formalsList:fl fnBody:fb
-                {:
-                  RESULT = new FnDeclNode(t, i, fl, fb);
-                :};
-
-formalDecl      ::= type:t id:i
-                {:
-                  RESULT = new FormalDeclNode(t, i);
-                :};
-
-structDecl      ::= STRUCT id:i LCURLY varDeclList:dl RCURLY
-                {:
-                  RESULT = new StructDeclNode(i, dl);
+                  RESULT = new DeclListNode();
                 :};
 
 decl            ::= varDecl:v
                 {:
                   RESULT = v;
-                :}
-                | formalDecl:fm
-                {:
-                  RESULT = fm;
                 :}
                 | fnDecl:fn
                 {:
@@ -265,294 +120,146 @@ decl            ::= varDecl:v
                   RESULT = st;
                 :};
 
-/*
- * Grammar for type nodes
- */
-int             ::= INT
+varDeclList     ::= varDeclList:vdl varDecl:v
                 {:
-                  RESULT = new IntNode();
-                :};
-
-bool            ::= BOOL
-                {:
-                  RESULT = new BoolNode();
-                :};
-
-void            ::= VOID
-                {:
-                  RESULT = new VoidNode();
-                :};
-
-struct          ::= STRUCT id:i
-                {:
-                  RESULT = new StructNode(i);
-                :};
-
-type            ::= int:i
-                {:
-                  RESULT = i;
+                  vdl.add(v);
+                  RESULT = vdl;
                 :}
-                | bool:b
+                |
                 {:
+                  RESULT = new DeclListNode();
+                :};
+
+fnDecl          ::= type:t id:i formals:f fnBody:b
+                {:
+                  RESULT = new FnDeclNode(t, i, f, b);
+                :};
+
+structDecl      ::= STRUCT id:i LCURLY structBody:b RCURLY
+                {:
+                  RESULT = new StructDeclNode(i, b);
+                :};
+
+structBody      ::= structBody:b varDecl:v
+                {:
+                  b.add(v);
                   RESULT = b;
                 :}
-                | void:v
+                | varDecl:v
                 {:
-                  RESULT = v;
-                :}
-                | struct:s
-                {:
-                  RESULT = s;
+                  RESULT = new DeclListNode(new LinkedList<DeclNode>() { v });
                 :};
 
-/*
- * Grammar for statement nodes
- */
-assignStmt        ::= assign:a SEMICOLON
-                  {:
-                    RESULT = a;
-                  :}
+formals         ::= LPAREN RPAREN
+                {:
+                  RESULT = new FormalsListNode();
+                :}
+                | LPAREN formalsList:f RPAREN
+                {:
+                  RESULT = f
+                :};
 
-preIncStmt        ::= PLUSPLUS loc:e SEMICOLON
-                  {:
-                    RESULT = new PreIncStmtNode(e);
-                  :};
+formalsList     ::= formalDecl:f
+                {:
+                  RESULT = new FormalsListNode(new LinkedList<FormalDeclNode>() { f });
+                :}
+                | formalDecl:d COMMA formalsList:fl
+                {:
+                  fl.add(d)
+                  RESULT = fl;
+                :};
 
-preDecStmt        ::= MINUSMINUS loc:e SEMICOLON
-                  {:
-                    RESULT = new PreDecStmtNode(e);
-                  :}
+formalDecl      ::= type:t id:i
+                {:
+                  RESULT = new FormalDeclNode(t, i);
+                :};
 
-receiveStmt       ::= RECEIVE READ loc:e SEMICOLON
-                  {:
-                    RESULT = new ReceiveStmtNode(e);
-                  :};
+fnBody          ::= LCURLY varDeclList:dl stmtList:sl RCURLY
+                {:
+                  RESULT = new FnBodyNode(dl, sl);
+                :};
 
-printStmt         ::= PRINT WRITE exp:e SEMICOLON
-                  {:
-                    RESULT = new PrintStmtNode(e);
-                  :};
+stmtList        ::= stmtList:sl stmt:s
+                {:
+                  sl.add(s);
+                  RESULT = sl;
+                :}
+                |
+                {:
+                  RESULT = new StmtListNode();
+                :};
 
-ifStmt            ::= IF exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
-                  {:
-                    RESULT = new IfStmtNode(e, dl, sl);
-                  :}
+stmt            ::= assignExp:a SEMICOLON
+                {:
+                  RESULT = new AssignStmtNode(a);
+                :}
+                | PLUSPLUS loc:l SEMICOLON
+                {:
+                  RESULT = new PreIncStmtNode(l);
+                :}
+                | MINUSMINUS loc:l SEMICOLON
+                {:
+                  RESULT = new PreDecStmtNode(l);
+                :}
+                | RECEIVE READ loc:l SEMICOLON
+                {:
+                  RESULT = new ReceiveStmtNode(l);
+                :}
+                | PRINT WRITE exp:e SEMICOLON
+                {:
+                  RESULT = new PrintStmtNode(e);
+                :}
+                | IF exp:e LCURLY varDeclList:vl stmtList:sl RCURLY
+                {:
+                  RESULT = new IfStmtNode(e, vl, sl);
+                :}
+                | IF exp:e LCURLY varDeclList:v1 stmtList:s1 RCURLY ELSE LCURLY varDeclList:v2 stmtList:s2 RCURLY
+                {:
+                  RESULT = new IfElseStmtNode(e, v1, s1, v2, s2);
+                :}
+                | WHILE exp:e LCURLY varDeclList:vl stmtList:sl RCURLY
+                {:
+                  RESULT = new WhileStmtNode(e, vl, sl);
+                :}
+                | REPEAT exp:e LCURLY varDeclList:vl stmtList:sl RCURLY
+                {:
+                  RESULT = new RepeatStmtNode(e, vl, sl);
+                :}
+                | RETURN exp:e SEMICOLON
+                {:
+                  RESULT = new ReturnStmtNode(e);
+                :}
+                | RETURN SEMICOLON
+                {:
+                  RESULT = new ReturnStmtNode();
+                :}
+                | fncall:f SEMICOLON
+                {:
+                  RESULT = new CallStmtNode(f);
+                :}
 
-ifElseStmt        ::= IF exp:e LCURLY varDeclList:dl1 stmtList:sl1 RCURLY ELSE LCURLY varDeclList:dl2 stmtList:sl2 RCURLY
-                  {:
-                    RESULT = new IfElseStmtNode(e, dl1, sl1, dl2, sl2);
-                  :}
+assignExp       ::= loc:l ASSIGN exp:e
+                {:
+                  RESULT = new AssignNode(l, e);
+                :};
 
-whileStmt         ::= WHILE exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
-                  {:
-                    RESULT = new WhileStmtNode(e, dl, sl);
-                  :};
-
-repeatStmt        ::= REPEAT exp:e LCURLY varDeclList:dl stmtList:sl RCURLY
-                  {:
-                    RESULT = new RepeatStmtNode(e, dl, sl);
-                  :};
-
-returnStmt        ::= RETURN exp:e SEMICOLON
-                  {:
-                    RESULT = new ReturnStmtNode(e);
-                  :}
-                  | RETURN SEMICOLON
-                  {:
-                    RESULT = new ReturnStmtNode();
-                  :};
-
-callStmt          ::= callExp:ce SEMICOLON
-                  {:
-                    RESULT = new CallStmtNode(ce);
-                  :};
-
-stmt              ::= assignStmt:assign
-                  {:
-                    RESULT = assign;
-                  :}
-                  | preIncStmt:preInc
-                  {:
-                    RESULT = preInc;
-                  :}
-                  | preDecStmt:preDec
-                  {:
-                    RESULT = preDec;
-                  :}
-                  | receiveStmt:recv
-                  {:
-                    RESULT = recv;
-                  :}
-                  | printStmt:print
-                  {:
-                    RESULT = print;
-                  :}
-                  | ifStmt:ifs
-                  {:
-                    RESULT = ifs;
-                  :}
-                  | ifElseStmt:ifes
-                  {:
-                    RESULT = ifes;
-                  :}
-                  | whileStmt:whl
-                  {:
-                    RESULT = whl;
-                  :}
-                  | repeatStmt:rep
-                  {:
-                    RESULT = rep;
-                  :}
-                  | callStmt:cll
-                  {:
-                    RESULT = cll;
-                  :}
-                  | returnStmt:ret
-                  {:
-                    RESULT = ret;
-                  :};
-
-/*
- * Grammar rules for expressions
- */
-loc               ::= id:i
-                  {:
-                    RESULT = i;
-                  :}
-                  | loc:l DOT id:i
-                  {:
-                    RESULT = new DotAccessExpNode(l, i);
-                  :};
-
-intLit            ::= INTLITERAL:il
-                  {:
-                    RESULT = new IntLitNode(il.linenum, il.charnum, il.intVal);
-                  :};
-
-strLit            ::= STRINGLITERAL:sl
-                  {:
-                    RESULT = new StrLitNode(sl.linenum, sl.charnum, sl.strVal);
-                  :};
-
-true              ::= TRUE:t
-                  {:
-                    RESULT = new TrueNode(t.linenum, t.charnum);
-                  :};
-
-false             ::= FALSE:f
-                  {:
-                    RESULT = new FalseNode(f.linenum, f.charnum);
-                  :};
-
-id                ::= ID:i
-                  {:
-                    RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
-                  :};
-
-assign            ::= loc:lhs ASSIGN exp:rhs
-                  {:
-                    RESULT = new AssignNode(lhs, rhs);
-                  :};
-
-callExp           ::= id:i LPAREN RPAREN
-                  {:
-                    RESULT = new CallExpNode(i);
-                  :}
-                  | id:i LPAREN actualList:el RPAREN
-                  {:
-                    RESULT = new CallExpNode(i, el);
-                  :};
-
-exp               ::= assign:a
-                  {:
-                    RESULT = a;
-                  :}
-                  | exp:e1 PLUS exp:e2
-                  {:
-                    RESULT = new PlusNode(e1, e2);
-                  :}
-                  | exp:e1 MINUS exp:e2
-                  {:
-                    RESULT = new MinusNode(e1, e2)
-                  :}
-                  | exp:e1 TIMES exp:e2
-                  {:
-                    RESULT = new TimesNode(e1, e2);
-                  :}
-                  | exp:e1 DIVIDE exp:e2
-                  {:
-                    RESULT = new DivideNode(e1, e2);
-                  :}
-                  | NOT exp:e
-                  {:
-                    RESULT = new NotNode(e);
-                  :}
-                  | exp:e1 AND exp:e2
-                  {:
-                    RESULT = new AndNode(e1, e2);
-                  :}
-                  | exp:e1 OR exp:e2
-                  {:
-                    RESULT = new OrNode(e1, e2);
-                  :}
-                  | exp:e1 EQUALS exp:e2
-                  {:
-                    RESULT = new EqualsNode(e1, e2);
-                  :}
-                  | exp:e1 NOTEQUALS exp:e2
-                  {:
-                    RESULT = new NotEqualsNode(e1, e2);
-                  :}
-                  | exp:e1 LESS exp:e2
-                  {:
-                    RESULT = new LessNode(e1, e2);
-                  :}
-                  | exp:e1 GREATER exp:e2
-                  {:
-                    RESULT = new GreaterNode(e1, e2);
-                  :}
-                  | exp:e1 LESSEQ exp:e2
-                  {:
-                    RESULT = new LessEqNode(e1, e2);
-                  :}
-                  | exp:e1 GREATEREQ exp:e2
-                  {:
-                    RESULT = new GreaterEqNode(e1, e2);
-                  :}
-                  | MINUS term:t
-                  {:
-                    RESULT = new UnaryMinusNode(t);
-                  :}
-                  | term:t
-                  {:
-                    RESULT = t;
-                  :};
-
-term              ::= intLit:i
-                  {:
-                    RESULT = i;
-                  :}
-                  | strLit:s
-                  {:
-                    RESULT = s;
-                  :}
-                  | true:t
-                  {:
-                    RESULT = t;
-                  :}
-                  | false:f
-                  {:
-                    RESULT = f;
-                  :}
-                  | LPAREN exp:e RPAREN
-                  {:
-                    RESULT = e;
-                  :}
-                  | callExp:ce
-                  {:
-                    RESULT = ce;
-                  :}
-                  | loc:l
-                  {:
-                    RESULT = l;
-                  :};
+exp             ::= assignExp:a
+                {:
+                  RESULT = a;
+                :}
+                | exp:e1 PLUS exp:e2
+                {:
+                  RESULT = new PlusNode(e1, e2);
+                :}
+                | exp:e1 MINUS exp:e2
+                {:
+                  RESULT = new MinusNode(e1, e2);
+                :}
+                | exp:e1 TIMES exp:e2
+                {:
+                  RESULT = new TimesNode(e1, e2);
+                :}
+                | exp:e1 DIVIDE exp:e2
+                {:
+                  RESULT = new DivideNode(e1, e2);
+                :}
