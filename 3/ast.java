@@ -142,8 +142,16 @@ class DeclListNode extends ASTnode {
 
   private List<DeclNode> declarations;
 
+  public DeclListNode() {
+    this.declarations = new LinkedList<DeclNode>();
+  }
+
   public DeclListNode(List<DeclNode> declarations) {
     this.declarations = declarations;
+  }
+
+  public void add(DeclNode declaration) {
+    this.declarations.add(declaration);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -159,6 +167,10 @@ class FormalsListNode extends ASTnode {
 
   public FormalsListNode(List<FormalDeclNode> formals) {
     this.formals = formals;
+  }
+
+  public void add(FormalDeclNode formal) {
+    this.formals.add(formal);
   }
 
   public void unparse(PrintWriter code, int indent) {

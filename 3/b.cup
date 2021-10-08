@@ -36,7 +36,7 @@ terminal                PRINT;
 terminal                IF;
 terminal                ELSE;
 terminal                WHILE;
-terminal		        REPEAT;
+terminal		            REPEAT;
 terminal                RETURN;
 terminal IdTokenVal     ID;
 terminal IntLitTokenVal INTLITERAL;
@@ -74,12 +74,38 @@ terminal                ASSIGN;
  *       add productions to the grammar below.
  */
 non terminal ProgramNode      program;
-non terminal LinkedList       declList;
+
+/*
+ * Leaf nodes
+ */
+non terminal IdNode         id;
+non terminal IntNode        int;
+non terminal TrueNode       true;
+non terminal BoolNode       bool;
+non terminal VoidNode       void;
+non terminal FalseNode      false;
+non terminal IntLitNode     intLit;
+non terminal StrLitNode     strLit;
+
+/*
+ * List nodes
+ */
+non terminal ExpListNode      expList;
+non terminal StmtListNode     stmtList;
+non terminal DeclListNode     declList;
+non terminal FormalsListNode  formalsList;
+
+/*
+ * Declarations
+ */
 non terminal DeclNode         decl;
+non terminal FnDeclNode       fnDecl;
 non terminal VarDeclNode      varDecl;
+non terminal FormalDeclNode   formalDecl;
+non terminal StructDeclNode   structDecl;
+
+
 non terminal TypeNode         type;
-non terminal IdNode           id;
- 
  
 /* NOTE: Add precedence and associativity declarations here */
 
@@ -91,29 +117,30 @@ start with program;
  *
  * NOTE: add more grammar rules below
  */
-program         ::= declList: d
-                {: RESULT = new ProgramNode(new DeclListNode(d));
-                :}
-                ;
+program         ::= declList:d
+                {:
+                  RESULT = new ProgramNode(d);
+                :};
 
 declList        ::= declList:dl decl:d
-                {: dl.addLast(d);
-                   RESULT = dl;
+                {:
+                  dl.add(d);
+                  RESULT = dl;
                 :}
                 | /* epsilon */
-                {: RESULT = new LinkedList<DeclNode>();
-                :}
-                ;
+                {: 
+                  RESULT = new DeclListNode();
+                :};
 
 decl            ::= varDecl:v
-                {: RESULT = v;
-                :}
-                ;
+                {:
+                  RESULT = v;
+                :};
 
 varDecl         ::= type:t id:i SEMICOLON
-                {: RESULT = new VarDeclNode(t, i, VarDeclNode.NOT_STRUCT);
-                :}
-                ;
+                {:
+                  RESULT = new VarDeclNode(t, i, VarDeclNode.NOT_STRUCT);
+                :};
 
 type            ::= INT
                 {: RESULT = new IntNode();
