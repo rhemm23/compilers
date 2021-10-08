@@ -76,6 +76,7 @@ non terminal FnBodyNode       fnBody;
 /*
  * List nodes
  */
+non terminal ExpListNode      actualList;
 non terminal ExpListNode      expList;
 non terminal StmtListNode     stmtList;
 non terminal DeclListNode     declList;
@@ -119,6 +120,8 @@ non terminal StructNode       struct;
  /*
   * Expression nodes
   */
+non terminal ExpNode        loc;
+non terminal ExpNode        term;
 non terminal ExpNode        exp;
 non terminal IntLitNode     intLit;
 non terminal StrLitNode     strLit;
@@ -211,6 +214,16 @@ varDeclList     ::= varDeclList:vd varDecl:v
                   RESULT = new DeclListNode(new LinkedList<VarDeclNode>() { v });
                 :}
 
+actualList      ::= actualList:al COMMA exp:e
+                {:
+                  al.add(e);
+                  RESULT = al;
+                :}
+                | exp:e
+                {:
+                  RESULT = new ExpListNode(new LinkedList<ExpNode> { e });
+                :};
+
 /*
  * Grammar for declarations
  */
@@ -275,6 +288,23 @@ struct          ::= STRUCT id:i
                   RESULT = new StructNode(i);
                 :};
 
+type            ::= int:i
+                {:
+                  RESULT = i;
+                :}
+                | bool:b
+                {:
+                  RESULT = b;
+                :}
+                | void:v
+                {:
+                  RESULT = v;
+                :}
+                | struct:s
+                {:
+                  RESULT = s;
+                :};
+
 /*
  * Grammar for statement nodes
  */
@@ -283,17 +313,17 @@ assignStmt        ::= assign:a SEMICOLON
                     RESULT = a;
                   :}
 
-preIncStmt        ::= PLUSPLUS exp:e SEMICOLON
+preIncStmt        ::= PLUSPLUS loc:e SEMICOLON
                   {:
                     RESULT = new PreIncStmtNode(e);
                   :};
 
-preDecStmt        ::= MINUSMINUS exp:e SEMICOLON
+preDecStmt        ::= MINUSMINUS loc:e SEMICOLON
                   {:
                     RESULT = new PreDecStmtNode(e);
                   :}
 
-receiveStmt       ::= RECEIVE READ exp:e SEMICOLON
+receiveStmt       ::= RECEIVE READ loc:e SEMICOLON
                   {:
                     RESULT = new ReceiveStmtNode(e);
                   :};
@@ -334,7 +364,7 @@ returnStmt        ::= RETURN exp:e SEMICOLON
 
 callStmt          ::= callExp:ce SEMICOLON
                   {:
-                    RESULT = new CallStmtNode();
+                    RESULT = new CallStmtNode(ce);
                   :};
 
 stmt              ::= assignStmt:assign
@@ -382,4 +412,147 @@ stmt              ::= assignStmt:assign
                     RESULT = ret;
                   :};
 
+/*
+ * Grammar rules for expressions
+ */
+loc               ::= id:i
+                  {:
+                    RESULT = i;
+                  :}
+                  | loc:l DOT id:i
+                  {:
+                    RESULT = new DotAccessExpNode(l, i);
+                  :};
 
+intLit            ::= INTLITERAL:il
+                  {:
+                    RESULT = new IntLitNode(il.linenum, il.charnum, il.intVal);
+                  :};
+
+strLit            ::= STRINGLITERAL:sl
+                  {:
+                    RESULT = new StrLitNode(sl.linenum, sl.charnum, sl.strVal);
+                  :};
+
+true              ::= TRUE:t
+                  {:
+                    RESULT = new TrueNode(t.linenum, t.charnum);
+                  :};
+
+false             ::= FALSE:f
+                  {:
+                    RESULT = new FalseNode(f.linenum, f.charnum);
+                  :};
+
+id                ::= ID:i
+                  {:
+                    RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
+                  :};
+
+assign            ::= loc:lhs ASSIGN exp:rhs
+                  {:
+                    RESULT = new AssignNode(lhs, rhs);
+                  :};
+
+callExp           ::= id:i LPAREN RPAREN
+                  {:
+                    RESULT = new CallExpNode(i);
+                  :}
+                  | id:i LPAREN actualList:el RPAREN
+                  {:
+                    RESULT = new CallExpNode(i, el);
+                  :};
+
+exp               ::= assign:a
+                  {:
+                    RESULT = a;
+                  :}
+                  | exp:e1 PLUS exp:e2
+                  {:
+                    RESULT = new PlusNode(e1, e2);
+                  :}
+                  | exp:e1 MINUS exp:e2
+                  {:
+                    RESULT = new MinusNode(e1, e2)
+                  :}
+                  | exp:e1 TIMES exp:e2
+                  {:
+                    RESULT = new TimesNode(e1, e2);
+                  :}
+                  | exp:e1 DIVIDE exp:e2
+                  {:
+                    RESULT = new DivideNode(e1, e2);
+                  :}
+                  | NOT exp:e
+                  {:
+                    RESULT = new NotNode(e);
+                  :}
+                  | exp:e1 AND exp:e2
+                  {:
+                    RESULT = new AndNode(e1, e2);
+                  :}
+                  | exp:e1 OR exp:e2
+                  {:
+                    RESULT = new OrNode(e1, e2);
+                  :}
+                  | exp:e1 EQUALS exp:e2
+                  {:
+                    RESULT = new EqualsNode(e1, e2);
+                  :}
+                  | exp:e1 NOTEQUALS exp:e2
+                  {:
+                    RESULT = new NotEqualsNode(e1, e2);
+                  :}
+                  | exp:e1 LESS exp:e2
+                  {:
+                    RESULT = new LessNode(e1, e2);
+                  :}
+                  | exp:e1 GREATER exp:e2
+                  {:
+                    RESULT = new GreaterNode(e1, e2);
+                  :}
+                  | exp:e1 LESSEQ exp:e2
+                  {:
+                    RESULT = new LessEqNode(e1, e2);
+                  :}
+                  | exp:e1 GREATEREQ exp:e2
+                  {:
+                    RESULT = new GreaterEqNode(e1, e2);
+                  :}
+                  | MINUS term:t
+                  {:
+                    RESULT = new UnaryMinusNode(t);
+                  :}
+                  | term:t
+                  {:
+                    RESULT = t;
+                  :};
+
+term              ::= intLit:i
+                  {:
+                    RESULT = i;
+                  :}
+                  | strLit:s
+                  {:
+                    RESULT = s;
+                  :}
+                  | true:t
+                  {:
+                    RESULT = t;
+                  :}
+                  | false:f
+                  {:
+                    RESULT = f;
+                  :}
+                  | LPAREN exp:e RPAREN
+                  {:
+                    RESULT = e;
+                  :}
+                  | callExp:ce
+                  {:
+                    RESULT = ce;
+                  :}
+                  | loc:l
+                  {:
+                    RESULT = l;
+                  :};
