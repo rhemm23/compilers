@@ -659,7 +659,7 @@ class ReturnStmtNode extends StmtNode {
   public void unparse(PrintWriter code, int indent) {
 
     this.addIndent(code, indent);
-    code.print("return");
+    code.print("ret");
 
     if (this.expression != null) {
       code.print(" ");
