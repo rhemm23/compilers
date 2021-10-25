@@ -6,8 +6,17 @@ struct n {
 }
 
 void test(int a, bool b) {
+  
   if (-x == z + l) {
+
     int a;
+
+    b = false;
+    c = true;
+
+    d = 124;
+    m.val = -1;
+    m.test = m.val = 8 * 3;
   }
 }
 

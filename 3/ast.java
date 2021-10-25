@@ -134,24 +134,16 @@ class ProgramNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    declarationList.unparse(code, indent);
+    this.declarationList.unparse(code, indent);
   }
 }
 
 class DeclListNode extends ASTnode {
 
-  protected List<DeclNode> declarations;
-
-  public DeclListNode() {
-    this.declarations = new LinkedList<DeclNode>();
-  }
+  private List<DeclNode> declarations;
 
   public DeclListNode(List<DeclNode> declarations) {
     this.declarations = declarations;
-  }
-
-  public void add(DeclNode declaration) {
-    this.declarations.add(declaration);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -165,16 +157,8 @@ class FormalsListNode extends ASTnode {
 
   private List<FormalDeclNode> formals;
 
-  public FormalsListNode() {
-    this.formals = new LinkedList<FormalDeclNode>();
-  }
-
   public FormalsListNode(List<FormalDeclNode> formals) {
     this.formals = formals;
-  }
-
-  public void add(FormalDeclNode formal) {
-    this.formals.add(formal);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -195,7 +179,7 @@ class FnBodyNode extends ASTnode {
 
   private DeclListNode declarations;
   private StmtListNode statements;
-    
+
   public FnBodyNode(DeclListNode declarations, StmtListNode statements) {
     this.declarations = declarations;
     this.statements = statements;
@@ -217,16 +201,8 @@ class StmtListNode extends ASTnode {
 
   private List<StmtNode> statements;
 
-  public StmtListNode() {
-    this.statements = new LinkedList<StmtNode>();
-  }
-
   public StmtListNode(List<StmtNode> statements) {
     this.statements = statements;
-  }
-
-  public void add(StmtNode statement) {
-    this.statements.add(statement);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -240,16 +216,8 @@ class ExpListNode extends ASTnode {
 
   private List<ExpNode> expressions;
 
-  public ExpListNode() {
-    this.expressions = new LinkedList<ExpNode>();
-  }
-
   public ExpListNode(List<ExpNode> expressions) {
     this.expressions = expressions;
-  }
-
-  public void add(ExpNode expression) {
-    this.expressions.add(expression);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -697,8 +665,6 @@ class CallStmtNode extends StmtNode {
 class ReturnStmtNode extends StmtNode {
 
   private ExpNode expression;
-
-  public ReturnStmtNode() { }
 
   public ReturnStmtNode(ExpNode expression) {
     this.expression = expression;
