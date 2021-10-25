@@ -189,7 +189,7 @@ formalsList     ::= formalDecl:f
                 :}
                 | formalDecl:d COMMA formalsList:fl
                 {:
-                  fl.add(d);
+                  fl.addFirst(d);
                   RESULT = fl;
                 :};
 
