@@ -710,7 +710,7 @@ class StringLitNode extends ExpNode {
   public void unparse(PrintWriter code, int indent) {
 
     this.addIndent(code, indent);
-    code.printf("\"%s\"", this.value);
+    code.printf(this.value);
   }
 }
 
