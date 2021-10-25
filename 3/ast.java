@@ -229,7 +229,13 @@ class ExpListNode extends ASTnode {
       } else {
         code.print(", ");
       }
-      expression.unparse(code, 0);
+      if (expression instanceof AssignNode) {
+        code.print("(");
+        expression.unparse(code, 0);
+        code.print(")");
+      } else {
+        expression.unparse(code, 0);
+      }
     }
   }
 }
@@ -486,7 +492,13 @@ class PrintStmtNode extends StmtNode {
     this.addIndent(code, indent);
     code.print("print << ");
 
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
     code.println(';');
   }
 }
@@ -512,7 +524,13 @@ class IfStmtNode extends StmtNode {
     this.addIndent(code, indent);
     code.print("if (");
 
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
     code.println(") {");
 
     this.declarations.unparse(code, indent + 2);
@@ -550,7 +568,13 @@ class IfElseStmtNode extends StmtNode {
     this.addIndent(code, indent);
     code.print("if (");
 
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
     code.println(") {");
 
     this.thenDeclarations.unparse(code, indent + 2);
@@ -588,7 +612,13 @@ class WhileStmtNode extends StmtNode {
     this.addIndent(code, indent);
     code.print("while (");
 
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
     code.println(") {");
 
     this.declarations.unparse(code, indent + 2);
@@ -620,7 +650,13 @@ class RepeatStmtNode extends StmtNode {
     this.addIndent(code, indent);
     code.print("repeat (");
 
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
     code.println(") {");
 
     this.declarations.unparse(code, indent + 2);
@@ -663,7 +699,13 @@ class ReturnStmtNode extends StmtNode {
 
     if (this.expression != null) {
       code.print(" ");
-      this.expression.unparse(code, 0);
+      if (expression instanceof AssignNode) {
+        code.print("(");
+        expression.unparse(code, 0);
+        code.print(")");
+      } else {
+        expression.unparse(code, 0);
+      }
     }
 
     code.println(';');
@@ -803,7 +845,13 @@ class AssignNode extends ExpNode {
     this.leftHandSide.unparse(code, 0);
 
     code.print(" = ");
-    this.expression.unparse(code, 0);
+    if (expression instanceof AssignNode) {
+      code.print("(");
+      expression.unparse(code, 0);
+      code.print(")");
+    } else {
+      expression.unparse(code, 0);
+    }
   }
 }
 
@@ -868,7 +916,13 @@ class UnaryMinusNode extends UnaryExpNode {
     this.addIndent(code, indent);
     code.print("(-");
 
-    this.exp.unparse(code, 0);
+    if (exp instanceof AssignNode) {
+      code.print("(");
+      exp.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -884,7 +938,13 @@ class NotNode extends UnaryExpNode {
     this.addIndent(code, indent);
     code.print("(!");
 
-    this.exp.unparse(code, 0);
+    if (exp instanceof AssignNode) {
+      code.print("(");
+      exp.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -904,10 +964,22 @@ class PlusNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" + ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -923,10 +995,22 @@ class MinusNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" - ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -942,10 +1026,22 @@ class TimesNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" * ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -961,10 +1057,22 @@ class DivideNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" / ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -980,10 +1088,22 @@ class AndNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" && ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -999,10 +1119,22 @@ class OrNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" || ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1018,10 +1150,22 @@ class EqualsNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" == ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1037,10 +1181,22 @@ class NotEqualsNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, indent);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" != ");
 
-    this.exp2.unparse(code, indent);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1056,10 +1212,22 @@ class LessNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" < ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1075,10 +1243,22 @@ class GreaterNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" > ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1094,10 +1274,22 @@ class LessEqNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" <= ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
@@ -1113,10 +1305,22 @@ class GreaterEqNode extends BinaryExpNode {
     this.addIndent(code, indent);
     code.print("(");
 
-    this.exp1.unparse(code, 0);
+    if (exp1 instanceof AssignNode) {
+      code.print("(");
+      exp1.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp1.unparse(code, 0);
+    }
     code.print(" >= ");
 
-    this.exp2.unparse(code, 0);
+    if (exp2 instanceof AssignNode) {
+      code.print("(");
+      exp2.unparse(code, 0);
+      code.print(")");
+    } else {
+      exp2.unparse(code, 0);
+    }
     code.print(")");
   }
 }
