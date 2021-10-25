@@ -36,7 +36,7 @@ terminal                PRINT;
 terminal                IF;
 terminal                ELSE;
 terminal                WHILE;
-terminal		            REPEAT;
+terminal                REPEAT;
 terminal                RETURN;
 terminal IdTokenVal     ID;
 terminal IntLitTokenVal INTLITERAL;
