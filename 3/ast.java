@@ -104,7 +104,7 @@ import java.util.*;
 // **********************************************************************
 
 // **********************************************************************
-// ####ASTnode class (base class for all other kinds of nodes)####
+// #### ASTnode class (base class for all other kinds of nodes) ####
 // **********************************************************************
 
 abstract class ASTnode {
@@ -178,11 +178,15 @@ class FormalsListNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    for (int i = 0; i < this.formals.size(); i++) {
-      if (i > 0) {
+    this.addIndent(code, indent);
+    boolean first = true;
+    for (FormalDeclNode formal : this.formals) {
+      if (first) {
+        first = false;
+      } else {
         code.print(", ");
       }
-      this.formals.get(i).unparse(code, indent);
+      formal.unparse(code, 0);
     }
   }
 }
@@ -198,9 +202,13 @@ class FnBodyNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     code.println("{");
+
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -245,14 +253,21 @@ class ExpListNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
+    boolean first = true;
     for (ExpNode expression : this.expressions) {
-      expression.unparse(code, indent);
+      if (first) {
+        first = false;
+      } else {
+        code.print(", ");
+      }
+      expression.unparse(code, 0);
     }
   }
 }
 
 // **********************************************************************
-// ####DeclNode and its subclasses####
+// #### DeclNode and its subclasses ####
 // **********************************************************************
 
 abstract class DeclNode extends ASTnode {
@@ -282,16 +297,15 @@ class VarDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+    this.addIndent(code, indent);
     if (this.size == NOT_STRUCT) {
-      addIndent(code, indent);
       this.type.unparse(code, 0);
       code.print(" ");
       this.id.unparse(code, 0);
     } else {
-      addIndent(code, indent);
       code.print("struct ");
       this.structId.unparse(code, 0);
-      code.print(' ');
+      code.print(" ");
       this.id.unparse(code, 0);
     }
     code.println(";");
@@ -318,12 +332,16 @@ class FnDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
-    this.type.unparse(code, indent);
+    this.type.unparse(code, 0);
+
     code.print(" ");
-    this.id.unparse(code, indent);
+    this.id.unparse(code, 0);
+
     code.print(" (");
-    this.formals.unparse(code, indent);
+    this.formals.unparse(code, 0);
+    
     code.print(") ");
     this.body.unparse(code, indent);
   }
@@ -340,9 +358,12 @@ class FormalDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.type.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    this.type.unparse(code, 0);
+
     code.print(" ");
-    this.id.unparse(code, indent);
+    this.id.unparse(code, 0);
   }
 }
 
@@ -357,10 +378,16 @@ class StructDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("struct ");
+
     this.id.unparse(code, 0);
-    code.println("{");
+    code.println(" {");
+
     this.declarations.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -374,6 +401,8 @@ abstract class TypeNode extends ASTnode { }
 class IntNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("int");
   }
 }
@@ -381,6 +410,8 @@ class IntNode extends TypeNode {
 class BoolNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("bool");
   }
 }
@@ -388,6 +419,8 @@ class BoolNode extends TypeNode {
 class VoidNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("void");
   }
 }
@@ -401,8 +434,11 @@ class StructNode extends TypeNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("struct ");
-    this.id.unparse(code, indent);
+
+    this.id.unparse(code, 0);
   }
 }
 
@@ -421,8 +457,10 @@ class AssignStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
-    this.assign.unparse(code, indent);
+    this.assign.unparse(code, 0);
+
     code.println(';');
   }
 }
@@ -436,10 +474,12 @@ class PreIncStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("++");
-    this.expression.unparse(code, indent);
-    code.print(';');
+
+    this.expression.unparse(code, 0);
+    code.println(';');
   }
 }
 
@@ -452,10 +492,12 @@ class PreDecStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("--");
-    this.expression.unparse(code, indent);
-    code.print(';');
+
+    this.expression.unparse(code, 0);
+    code.println(';');
   }
 }
 
@@ -468,10 +510,12 @@ class ReceiveStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("receive >> ");
-    this.expression.unparse(code, indent);
-    code.print(';');
+
+    this.expression.unparse(code, 0);
+    code.println(';');
   }
 }
 
@@ -484,10 +528,12 @@ class PrintStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("print << ");
-    this.expression.unparse(code, indent);
-    code.print(';');
+
+    this.expression.unparse(code, 0);
+    code.println(';');
   }
 }
 
@@ -504,15 +550,21 @@ class IfStmtNode extends StmtNode {
   ) {
     this.declarations = declarations;
     this.statements = statements;
+    this.expression = expression;
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("if (");
+
     this.expression.unparse(code, 0);
     code.println(") {");
+
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -540,15 +592,23 @@ class IfElseStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("if (");
-    this.expression.unparse(code, indent);
+
+    this.expression.unparse(code, 0);
     code.println(") {");
+
     this.thenDeclarations.unparse(code, indent + 2);
     this.thenStatements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("} else {");
+
     this.elseDeclarations.unparse(code, indent + 2);
     this.elseStatements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -570,12 +630,17 @@ class WhileStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("while (");
+
     this.expression.unparse(code, 0);
     code.println(") {");
+
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -597,12 +662,17 @@ class RepeatStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("repeat (");
+
     this.expression.unparse(code, 0);
     code.println(") {");
+
     this.declarations.unparse(code, indent + 2);
     this.statements.unparse(code, indent + 2);
+
+    this.addIndent(code, indent);
     code.println("}");
   }
 }
@@ -616,8 +686,10 @@ class CallStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
-    this.callExpression.unparse(code, indent);
+    this.callExpression.unparse(code, 0);
+
     code.println(';');
   }
 }
@@ -633,12 +705,15 @@ class ReturnStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
     code.print("return");
+
     if (this.expression != null) {
-      code.print(' ');
+      code.print(" ");
       this.expression.unparse(code, 0);
     }
+
     code.println(';');
   }
 }
@@ -662,6 +737,8 @@ class IntLitNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print(this.value);
   }
 }
@@ -679,6 +756,8 @@ class StringLitNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.printf("\"%s\"", this.value);
   }
 }
@@ -694,6 +773,8 @@ class TrueNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("true");
   }
 }
@@ -709,6 +790,8 @@ class FalseNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print("false");
   }
 }
@@ -726,6 +809,8 @@ class IdNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
     code.print(this.value);
   }
 }
@@ -741,9 +826,12 @@ class DotAccessExpNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.accessor.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    this.accessor.unparse(code, 0);
+
     code.print('.');
-    this.id.unparse(code, indent);
+    this.id.unparse(code, 0);
   }
 }
 
@@ -758,9 +846,12 @@ class AssignNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.leftHandSide.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    this.leftHandSide.unparse(code, 0);
+
     code.print(" = ");
-    this.expression.unparse(code, indent);
+    this.expression.unparse(code, 0);
   }
 }
 
@@ -780,9 +871,12 @@ class CallExpNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.methodId.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    this.methodId.unparse(code, 0);
+
     code.print('(');
-    this.parameterExpressions.unparse(code, indent);
+    this.parameterExpressions.unparse(code, 0);
     code.print(')');
   }
 }
@@ -818,8 +912,12 @@ class UnaryMinusNode extends UnaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    code.print('-');
-    this.exp.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(-");
+
+    this.exp.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -830,8 +928,12 @@ class NotNode extends UnaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    code.print('!');
-    this.exp.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(!");
+
+    this.exp.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -846,9 +948,15 @@ class PlusNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" + ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -859,9 +967,15 @@ class MinusNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" - ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -872,9 +986,15 @@ class TimesNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" * ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -885,9 +1005,15 @@ class DivideNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" / ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -898,9 +1024,15 @@ class AndNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" && ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -911,9 +1043,15 @@ class OrNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" || ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -924,9 +1062,15 @@ class EqualsNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+    
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" == ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -937,9 +1081,15 @@ class NotEqualsNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
+
+    this.addIndent(code, indent);
+    code.print("(");
+
     this.exp1.unparse(code, indent);
     code.print(" != ");
+
     this.exp2.unparse(code, indent);
+    code.print(")");
   }
 }
 
@@ -950,9 +1100,15 @@ class LessNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" < ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -963,9 +1119,15 @@ class GreaterNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" > ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -976,9 +1138,15 @@ class LessEqNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+    
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" <= ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }
 
@@ -989,8 +1157,14 @@ class GreaterEqNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.exp1.unparse(code, indent);
+
+    this.addIndent(code, indent);
+    code.print("(");
+
+    this.exp1.unparse(code, 0);
     code.print(" >= ");
-    this.exp2.unparse(code, indent);
+
+    this.exp2.unparse(code, 0);
+    code.print(")");
   }
 }

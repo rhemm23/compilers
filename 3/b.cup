@@ -93,13 +93,13 @@ non terminal TypeNode         type;
 non terminal ExpNode          loc;
 non terminal IdNode           id;
 
-precedence left NOT;
-precedence left TIMES, DIVIDE;
-precedence left PLUS, MINUS;
-precedence nonassoc LESS, GREATER, LESSEQ, GREATEREQ, EQUALS, NOTEQUALS;
-precedence left AND;
+precedence right ASSIGN;
 precedence left OR;
-precedence left ASSIGN;
+precedence left AND;
+precedence nonassoc LESS, GREATER, LESSEQ, GREATEREQ, EQUALS, NOTEQUALS;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+precedence left NOT;
 
 start with program;
 
