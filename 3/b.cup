@@ -93,6 +93,7 @@ non terminal TypeNode         type;
 non terminal ExpNode          loc;
 non terminal IdNode           id;
 
+/* precedence and associativity declarations here */
 precedence right ASSIGN;
 precedence left OR;
 precedence left AND;
@@ -103,6 +104,7 @@ precedence left NOT;
 
 start with program;
 
+/* Grammar with actions */
 program         ::= declList:dl
                 {:
                   RESULT = new ProgramNode(new DeclListNode(dl));
