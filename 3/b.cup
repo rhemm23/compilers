@@ -143,11 +143,11 @@ varDeclList     ::= varDeclList:vdl varDecl:v
 
 varDecl         ::= type:t id:i SEMICOLON
                 {:
-                  RESULT = new VarDeclNode(t, i);
+                  RESULT = new VarDeclNode(t, i, VarDeclNode.NOT_STRUCT);
                 :}
                 | STRUCT id:i1 id:i2 SEMICOLON
                 {:
-                  RESULT = new VarDeclNode(i1, i2);
+                  RESULT = new VarDeclNode(new StructNode(i1), i2, 0);
                 :};
 
 fnDecl          ::= type:t id:i formals:f fnBody:b

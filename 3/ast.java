@@ -245,37 +245,23 @@ class VarDeclNode extends DeclNode {
 
   public static int NOT_STRUCT = -1;
 
-  private IdNode structId;
   private TypeNode type;
   private IdNode id;
   private int size;
 
-  public VarDeclNode(TypeNode type, IdNode id) {
-    this.size = NOT_STRUCT;
-    this.structId = null;
+  public VarDeclNode(TypeNode type, IdNode id, int size) {
     this.type = type;
-    this.id = id;
-  }
-
-  public VarDeclNode(IdNode structId, IdNode id) {
-    this.structId = structId;
-    this.type = null;
-    this.size = 0;
+    this.size = size;
     this.id = id;
   }
 
   public void unparse(PrintWriter code, int indent) {
+
     this.addIndent(code, indent);
-    if (this.size == NOT_STRUCT) {
-      this.type.unparse(code, 0);
-      code.print(" ");
-      this.id.unparse(code, 0);
-    } else {
-      code.print("struct ");
-      this.structId.unparse(code, 0);
-      code.print(" ");
-      this.id.unparse(code, 0);
-    }
+    this.type.unparse(code, 0);
+
+    code.print(" ");
+    this.id.unparse(code, 0);
     code.println(";");
   }
 }

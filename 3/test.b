@@ -6,15 +6,23 @@ struct n {
 }
 
 void test(int a, bool b) {
-  
   if (-x == z + l) {
-
     int a;
 
+    ### Test boolean constants
     b = false;
     c = true;
 
+    ### Test integer constants
     d = 124;
+    e = 0;
+    f = 123456789;
+
+    ### String constants
+    g = "test";
+    h = "\"esc_test\"";
+    i = "";
+
     m.val = -1;
     m.test = m.val = 8 * 3;
   }
