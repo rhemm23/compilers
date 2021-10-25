@@ -5,22 +5,30 @@ void b;
 bool c;
 struct m d;
 
-### Test struct with multiple variables
-struct n {
+### Test declaring struct(structDecl) with multiple variables(structBody)
+struct name {
   struct m val;
   int val1;
   bool val2;
   void val3;
 }
 
-### Test struct with one variable
+### Test declaring struct(structDecl) with one variable(structBody)
 struct m {
   void t;
 }
 
-### Test method declaration with parameters
+### Test method with varDecls and Stmts(fnDecl, fnBody, varDeclList, stmtList)
+### with parameters(formals, formalDecl, formalsList)
 void test(int a, bool b) {
-
+  
+  ### Test multiple variable declarations in function body
+  bool b;
+  bool c;
+  int d;
+  int e;
+  int f;
+  
   ### Test boolean constant expressions
   b = false;
   c = true;
@@ -93,13 +101,28 @@ void test(int a, bool b) {
   } else {
     f = f * 2;
   }
+  
+  if ("true") {
+  }
 
   while (!b) {
+    bool f;
+    int var;
     c = d * 3;
+    var = 10;
+  }
+  
+  while ("working") {
   }
 
   repeat (d * 9 / 2) {
+    int var;
+    bool s;
     f.val = 4 * test();
+    b = true;
+  }
+  
+  repeat ("repeat") {
   }
 
   ret 4;
@@ -109,7 +132,13 @@ void test(int a, bool b) {
   test(false, 2, 3);
 }
 
-### Test method declaration without parameters
+### Test empty method declaration(fnDecl, fnBody, varDeclList, stmtList) 
+### with 1 parameter(formals, formalDecl, formalsList)
+bool empty_method(bool a) {
+}
+
+### Test method declaration(fnDecl, fnBody, varDeclList, stmtList)
+### without parameters(formals)
 int main() {
 
   int a;
