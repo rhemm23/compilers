@@ -449,23 +449,23 @@ class FormalDeclNode extends DeclNode {
     boolean validDeclaration = true;
     if (type instanceof VoidNode) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Non-function declared void"
       );
       validDeclaration = false;
     }
-    if (symbolTable.lookupLocal(id.getValue()) != null) {
+    if (symbolTable.lookupLocal(id.name()) != null) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Multiply declared identifier"
       );
       validDeclaration = false;
     }
     if (validDeclaration) {
       try {
-        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type.toString()));
+        symbolTable.addDecl(id.name(), sym = new VariableSym(type.toString()));
       } catch (Exception e) {
         System.err.println("Unexpected error");
         System.exit(-1);
@@ -496,15 +496,15 @@ class StructDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    if (symbolTable.lookupLocal(id.getValue()) != null) {
+    if (symbolTable.lookupLocal(id.name()) != null) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Multiply declared identifier"
       );
     } else {
       try {
-        symbolTable.addDecl(id.getValue(), sym = new StructSym());
+        symbolTable.addDecl(id.name(), sym = new StructSym());
       } catch (Exception e) {
         System.err.println("Unexpected error");
         System.exit(-1);
@@ -515,7 +515,7 @@ class StructDeclNode extends DeclNode {
       VarDeclNode varDecl = (VarDeclNode)declaration;
       varDecl.analyze(symbolTable);
       if (varDecl.getSym() != null) {
-        sym.addMember(varDecl.getId().getValue(), varDecl.getSym());
+        sym.addMember(varDecl.name(), varDecl.getSym());
       }
     }
     try {
