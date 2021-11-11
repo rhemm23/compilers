@@ -694,10 +694,27 @@ class IdNode extends ExpNode {
         myStrVal = strVal;
     }
 
-    public void unparse(PrintWriter p, int indent) {
-        p.print(myStrVal);
+    public void linkSym(Sym sym) {
+      this.symbol = sym;
     }
 
+    private int getLineNum() {
+      return myLineNum;
+    }
+
+    private int getCharNum() {
+      return myCharNum;
+    }
+
+    private String getName() {
+      return myStrVal;
+    }
+
+    public void unparse(PrintWriter p, int indent) {
+      p.print(myStrVal);
+      if (symbol != null) p.print("(" + symbol.toString() + ")");
+    }
+    private Sym symbol;
     private int myLineNum;
     private int myCharNum;
     private String myStrVal;
