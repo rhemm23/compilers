@@ -29,11 +29,3 @@ int a(int x, bool y){
 }
 
 struct Point p;
-p.y = 15;
-
-if (x + 10) {
-  int x;
-}
-
-
-

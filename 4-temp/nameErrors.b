@@ -12,14 +12,11 @@ int f(int a, bool b){
 }
 
 // used before declared
-c = 10;
 
 // dot operator
 struct Structure {
-  int d = 10;
-  bool e = true;
+  int d;
+  bool e;
 }
 
-d.d;
 struct Structure p;
-p.h = 10;

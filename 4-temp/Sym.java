@@ -2,68 +2,79 @@ import java.util.*;
 
 public class Sym {
 
-  public enum Types {
-    STRUCT,
-    FUNCTION,
-    FORMAL,
-    VARIABLE,
-    STRUCT_VARIABLE
-  }
-
-  private Types type;
+  private String type; 
   
-  public Sym(Types type) {
+  public Sym(String type) {
     this.type = type;
   }
   
-  public Types getType() {
+  public String getType() {
     return type;
   }
   
   public String toString() {
-    switch (this.type) {
-      case STRUCT:
-        return "struct";
+    return type;
+  }
+}
 
-      case FUNCTION:
-        return "function";
+class FnSym extends Sym {
 
-      case FORMAL:
-        return "formal";
+  private List<Sym> formals;
+  private String returnType;
 
-      case STRUCT_VARIABLE:
-        return "struct variable";
+  public FnSym(String returnType) {
+    super("function");
+    this.returnType = returnType;
+  }
 
-      default:
-        return "variable";
+  public void addFormals (List<Sym> formals) {
+    this.formals = formals;
+  }
+
+  public List<Sym> getFormals() {
+    return this.formals;
+  }
+
+  public String getReturnType() {
+    return returnType;
+  }
+
+  public String toString() {
+    String fnStr = "";
+    if (formals != null) {
+      boolean firstParam = true;
+      for (Sym param : formals) {
+        if (firstParam) {
+          firstParam = false;
+          fnStr = param.toString();
+        } else {
+          fnStr = fnStr.concat("," + param.toString());
+        }
+      }
     }
+    if (returnType != null) {
+      fnStr = fnStr.concat("->" + returnType);
+    }
+    return fnStr;
+  }
+}
+
+class StructDefSym extends Sym {
+  private SymTable structSymTab;
+
+  public StructDefSym(SymTable symTab) {
+    super("structDef");
+    structSymTab = symTab;
+  }
+
+  public SymTable getStructSymTab() {
+    return structSymTab;
   }
 }
 
 class StructSym extends Sym {
-
-  private SymTable symbolTable;
-
-  public StructSym() {
-    super(Sym.Types.STRUCT);
-    this.symbolTable = new SymTable();
-  }
-
-  public SymTable getSymTable() {
-    return this.symbolTable;
-  }
-}
-
-class StructVariableSym extends Sym {
-
-  private StructSym structSymbol;
-
-  public StructVariableSym(StructSym structSymbol) {
-    super(Sym.Types.STRUCT_VARIABLE);
-    this.structSymbol = structSymbol;
-  }
-
-  public StructSym getStructSym() {
-    return this.structSymbol;
+  
+  public StructSym(String structName) {
+    super(structName);
   }
 }

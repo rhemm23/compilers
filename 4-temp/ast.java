@@ -167,9 +167,14 @@ class DeclListNode extends ASTnode {
 class FormalsListNode extends ASTnode {
 
   private List<FormalDeclNode> formals;
+  private List<Sym> formalSymbols;
 
   public FormalsListNode(List<FormalDeclNode> formals) {
     this.formals = formals;
+  }
+
+  public List<Sym> getSymbols() {
+    return this.formalSymbols;
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -186,8 +191,10 @@ class FormalsListNode extends ASTnode {
   }
 
   public void analyze(SymTable symbolTable) {
+    this.formalSymbols = new LinkedList<Sym>();
     for (FormalDeclNode formal : this.formals) {
       formal.analyze(symbolTable);
+      this.formalSymbols.add(formal.getSym());
     }
   }
 }
@@ -308,15 +315,15 @@ class VarDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym variableSymbol = new Sym(Sym.Types.VARIABLE);
+    Sym variableSymbol = new Sym(this.type.toString());
     if (this.type instanceof StructNode) {
       StructNode structNode = (StructNode)this.type;
       structNode.analyze(symbolTable);
-      StructSym structSymbol = structNode.getStructSym();
-      if (structSymbol == null) {
+      StructDefSym structDefSymbol = structNode.getStructDefSym();
+      if (structDefSymbol == null) {
         return;
       } else {
-        variableSymbol = new StructVariableSym(structSymbol);
+        variableSymbol = new StructSym(structNode.getId().getValue());
       }
     } else if (this.type instanceof VoidNode) {
       ErrMsg.fatal(
@@ -376,8 +383,9 @@ class FnDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
+    FnSym fnSym = new FnSym(this.type.toString());
     try {
-      symbolTable.addDecl(this.id.getValue(), new Sym(Sym.Types.FUNCTION));
+      symbolTable.addDecl(this.id.getValue(), fnSym);
     } catch (DuplicateSymException e) {
       ErrMsg.fatal(
         this.id.getLineNum(),
@@ -390,6 +398,7 @@ class FnDeclNode extends DeclNode {
     }
     symbolTable.addScope();
     this.formals.analyze(symbolTable);
+    fnSym.addFormals(this.formals.getSymbols());
     this.body.analyze(symbolTable);
     try {
       symbolTable.removeScope();
@@ -404,6 +413,7 @@ class FormalDeclNode extends DeclNode {
 
   private TypeNode type;
   private IdNode id;
+  private Sym sym;
 
   public FormalDeclNode(TypeNode type, IdNode id) {
     this.type = type;
@@ -419,6 +429,10 @@ class FormalDeclNode extends DeclNode {
     this.id.unparse(code, 0);
   }
 
+  public Sym getSym() {
+    return this.sym;
+  }
+
   public void analyze(SymTable symbolTable) {
     if (this.type instanceof VoidNode) {
       ErrMsg.fatal(
@@ -428,7 +442,9 @@ class FormalDeclNode extends DeclNode {
       );
     }
     try {
-      symbolTable.addDecl(this.id.getValue(), new Sym(Sym.Types.FORMAL));
+      Sym sym = new Sym(this.type.toString());
+      symbolTable.addDecl(this.id.getValue(), sym);
+      this.sym = sym;
     } catch (DuplicateSymException e) {
       ErrMsg.fatal(
         this.id.getLineNum(),
@@ -467,9 +483,10 @@ class StructDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    StructSym structSymbol = new StructSym();
+    SymTable structSymTable = new SymTable();
+    StructDefSym structDefSym = new StructDefSym(structSymTable);
     try {
-      symbolTable.addDecl(this.id.getValue(), structSymbol);
+      symbolTable.addDecl(this.id.getValue(), structDefSym);
     } catch (DuplicateSymException e) {
       ErrMsg.fatal(
         this.id.getLineNum(),
@@ -480,7 +497,7 @@ class StructDeclNode extends DeclNode {
       System.err.println("Encountered an unexpected error");
       System.exit(-1);
     }
-    this.declarations.analyze(structSymbol.getSymTable());
+    this.declarations.analyze(structSymTable);
   }
 }
 
@@ -502,6 +519,10 @@ class IntNode extends TypeNode {
   }
 
   public void analyze(SymTable symbolTable) { }
+
+  public String toString() {
+    return "int";
+  }
 }
 
 class BoolNode extends TypeNode {
@@ -513,6 +534,10 @@ class BoolNode extends TypeNode {
   }
 
   public void analyze(SymTable symbolTable) { }
+
+  public String toString() {
+    return "bool";
+  }
 }
 
 class VoidNode extends TypeNode {
@@ -524,19 +549,27 @@ class VoidNode extends TypeNode {
   }
 
   public void analyze(SymTable symbolTable) { }
+
+  public String toString() {
+    return "void";
+  }
 }
 
 class StructNode extends TypeNode {
 
-  private StructSym structSymbol;
+  private StructDefSym structDefSymbol;
   private IdNode id;
 
   public StructNode(IdNode id) {
     this.id = id;
   }
 
-  public StructSym getStructSym() {
-    return this.structSymbol;
+  public IdNode getId() {
+    return this.id;
+  }
+
+  public StructDefSym getStructDefSym() {
+    return this.structDefSymbol;
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -549,15 +582,19 @@ class StructNode extends TypeNode {
 
   public void analyze(SymTable symbolTable) {
     Sym symbol = symbolTable.lookupGlobal(this.id.getValue());
-    if (symbol == null || !(symbol instanceof StructSym)) {
+    if (symbol == null || !(symbol instanceof StructDefSym)) {
       ErrMsg.fatal(
         this.id.getLineNum(),
         this.id.getCharNum(),
         "Invalid name of struct type"
       );
     } else {
-      this.structSymbol = (StructSym)symbol;
+      this.structDefSymbol = (StructDefSym)symbol;
     }
+  }
+
+  public String toString() {
+    return this.id.getValue();
   }
 }
 
@@ -1060,6 +1097,7 @@ class IdNode extends ExpNode {
   private String value;
   private int charNum;
   private int lineNum;
+  private Sym symbol;
 
   public IdNode(int lineNum, int charNum, String value) {
     this.charNum = charNum;
@@ -1067,14 +1105,25 @@ class IdNode extends ExpNode {
     this.value = value;
   }
 
+  public void linkSymbol(Sym symbol) {
+    this.symbol = symbol;
+  }
+
   public void analyze(SymTable symbolTable) {
-    /* Parent of ID node will handle analysis */
+    Sym sym = symbolTable.lookupGlobal(this.value);
+    if (sym == null) {
+      ErrMsg.fatal(this.lineNum, this.charNum, "Undeclared identifier");
+    } else {
+      this.symbol = sym;
+    }
   }
 
   public void unparse(PrintWriter code, int indent) {
-
     this.addIndent(code, indent);
     code.print(this.value);
+    if (this.symbol != null) {
+      code.print("(" + this.symbol.toString() + ")");
+    }
   }
 
   public String getValue() {
@@ -1122,21 +1171,26 @@ class DotAccessExpNode extends ExpNode {
       lhs = dotAccessNode.getId();
     }
     Sym symbol = symbolTable.lookupGlobal(lhs.getValue());
-    if (symbol == null || !(symbol instanceof StructVariableSym)) {
+    if (symbol == null || !(symbol instanceof StructSym)) {
       ErrMsg.fatal(
         lhs.getLineNum(),
         lhs.getCharNum(),
         "Dot-access of non-struct type"
       );
     } else {
-      StructVariableSym structVariableSymbol = (StructVariableSym)symbol;
-      Sym memberSymbol = structVariableSymbol.getStructSym().getSymTable().lookupGlobal(this.id.getValue());
-      if (memberSymbol == null) {
+      StructSym structSym = (StructSym)symbol;
+      Sym structDef = symbolTable.lookupGlobal(structSym.getType());
+      StructDefSym structDefSym = (StructDefSym)structDef;
+      SymTable symTable = structDefSym.getStructSymTab();
+      Sym memberSym = symTable.lookupGlobal(this.id.getValue());
+      if (memberSym == null) {
         ErrMsg.fatal(
           this.id.getLineNum(),
           this.id.getCharNum(),
           "Invalid struct field name"
         );
+      } else {
+        this.id.linkSymbol(memberSym);
       }
     }
     this.accessor.analyze(symbolTable);
@@ -1201,12 +1255,14 @@ class CallExpNode extends ExpNode {
 
   public void analyze(SymTable symbolTable) {
     Sym symbol = symbolTable.lookupGlobal(this.methodId.getValue());
-    if (symbol == null || symbol.getType() != Sym.Types.FUNCTION) {
+    if (symbol == null || !(symbol instanceof FnSym)) {
       ErrMsg.fatal(
         this.methodId.getLineNum(),
         this.methodId.getCharNum(),
         "Undeclared identifier"
       );
+    } else {
+      this.methodId.linkSymbol((FnSym)symbol);
     }
     this.parameterExpressions.analyze(symbolTable);
   }
