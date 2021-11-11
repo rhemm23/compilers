@@ -39,8 +39,22 @@ class FnSym extends Sym {
   }
 
   public String toString() {
-    // TODO: for debug
-    return "";
+    String fnStr = "";
+    if (formals != null) {
+      boolean firstParam = true;
+      for (Sym param : formals) {
+        if (firstParam) {
+          firstParam = false;
+          fnStr = param.toString();
+        } else {
+          fnStr.concat("," + param.toString());
+        }
+      }
+    }
+    if (returnType != null) {
+      fnStr.concat("->" + returnType);
+    }
+    return fnStr;
   }
 }
 
@@ -59,7 +73,7 @@ class StructDefSym extends Sym {
 
 class StructSym extends Sym {
   
-  public StructSym() {
-    super("struct");
+  public StructSym(String structName) {
+    super(structName);
   }
 }
