@@ -468,6 +468,9 @@ class StructDeclNode extends DeclNode {
         this.id.getCharNum(),
         "Multiply declared identifier"
       );
+    } catch (Exception e) {
+      System.err.println("Encountered an unexpected error");
+      System.exit(-1);
     }
     this.declarations.analyze(structSymbol.getSymTable());
   }
