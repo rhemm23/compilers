@@ -1,80 +1,51 @@
 import java.util.*;
 
-public class Sym {
+public abstract class Sym { }
 
-  private String type; 
-  
-  public Sym(String type) {
+public class VariableSym extends Sym {
+
+  private TypeNode type;
+
+  public VariableSym(TypeNode type) {
     this.type = type;
   }
-  
-  public String getType() {
+
+  public TypeNode getType() {
     return type;
   }
-  
+
   public String toString() {
-    return type;
+    return type.toString();
   }
 }
 
-class FnSym extends Sym {
+public class FunctionSym extends Sym {
 
-  private List<Sym> formals;
-  private String returnType;
+  private List<Sym> formalSyms;
+  private TypeNode returnType;
 
-  public FnSym(String returnType) {
-    super("function");
+  public FunctionSym(TypeNode returnType) {
     this.returnType = returnType;
   }
 
-  public void addFormals (List<Sym> formals) {
-    this.formals = formals;
-  }
-
-  public List<Sym> getFormals() {
-    return this.formals;
-  }
-
-  public String getReturnType() {
-    return returnType;
-  }
-
-  public String toString() {
-    String fnStr = "";
-    if (formals != null) {
-      boolean firstParam = true;
-      for (Sym param : formals) {
-        if (firstParam) {
-          firstParam = false;
-          fnStr = param.toString();
-        } else {
-          fnStr = fnStr.concat("," + param.toString());
-        }
-      }
-    }
-    if (returnType != null) {
-      fnStr = fnStr.concat("->" + returnType);
-    }
-    return fnStr;
+  public void setFormalSyms(List<Sym> formalSyms) {
+    this.formalSyms = formalSyms;
   }
 }
 
-class StructDefSym extends Sym {
-  private SymTable structSymTab;
+public class StructSym extends Sym {
 
-  public StructDefSym(SymTable symTab) {
-    super("structDef");
-    structSymTab = symTab;
+  private HashMap<String, VariableSym> members;
+
+  public StructSym() {
+    members = new HashMap<String, VariableSym>();
   }
 
-  public SymTable getStructSymTab() {
-    return structSymTab;
+  public void addMember(String name, VariableSym varSym) {
+    members.put(name, varSym);
   }
-}
 
-class StructSym extends Sym {
-  
-  public StructSym(String structName) {
-    super(structName);
+  public boolean hasMember(String name) {
+    return members.containsKey(name);
   }
 }

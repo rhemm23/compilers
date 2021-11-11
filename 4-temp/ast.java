@@ -127,23 +127,23 @@ abstract class ASTnode {
 
 class ProgramNode extends ASTnode {
 
-  private DeclListNode declarationList;
+  private DeclListNode declarations;
 
-  public ProgramNode(DeclListNode declarationList) {
-    this.declarationList = declarationList;
+  public ProgramNode(DeclListNode declarations) {
+    this.declarations = declarations;
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.declarationList.unparse(code, indent);
+    declarations.unparse(code, indent);
   }
 
   public void analyze() {
     SymTable symbolTable = new SymTable();
-    this.declarationList.analyze(symbolTable);
+    declarations.analyze(symbolTable);
   }
 }
 
-class DeclListNode extends ASTnode {
+class DeclListNode extends ASTnode implements Iterable<DeclNode> {
 
   private List<DeclNode> declarations;
 
@@ -151,14 +151,18 @@ class DeclListNode extends ASTnode {
     this.declarations = declarations;
   }
 
+  public Iterator<DeclNode> iterator() {
+    return declarations.iterator();
+  }
+
   public void unparse(PrintWriter code, int indent) {
-    for (DeclNode declaration : this.declarations) {
+    for (DeclNode declaration : this) {
       declaration.unparse(code, indent);
     }
   }
 
   public void analyze(SymTable symbolTable) {
-    for (DeclNode declaration : this.declarations) {
+    for (DeclNode declaration : this) {
       declaration.analyze(symbolTable);
     }
   }
@@ -167,20 +171,20 @@ class DeclListNode extends ASTnode {
 class FormalsListNode extends ASTnode {
 
   private List<FormalDeclNode> formals;
-  private List<Sym> formalSymbols;
+  private List<Sym> syms;
 
   public FormalsListNode(List<FormalDeclNode> formals) {
     this.formals = formals;
   }
 
-  public List<Sym> getSymbols() {
-    return this.formalSymbols;
+  public List<Sym> getSyms() {
+    return syms;
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     boolean first = true;
-    for (FormalDeclNode formal : this.formals) {
+    for (FormalDeclNode formal : formals) {
       if (first) {
         first = false;
       } else {
@@ -191,10 +195,12 @@ class FormalsListNode extends ASTnode {
   }
 
   public void analyze(SymTable symbolTable) {
-    this.formalSymbols = new LinkedList<Sym>();
-    for (FormalDeclNode formal : this.formals) {
+    syms = new LinkedList<Sym>();
+    for (FormalDeclNode formal : formals) {
       formal.analyze(symbolTable);
-      this.formalSymbols.add(formal.getSym());
+      if (formal.getSym() != null) {
+        syms.add(formal.getSym());
+      }
     }
   }
 }
@@ -210,19 +216,16 @@ class FnBodyNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
     code.println("{");
-
-    this.declarations.unparse(code, indent + 2);
-    this.statements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    declarations.unparse(code, indent + 2);
+    statements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-    this.declarations.analyze(symbolTable);
-    this.statements.analyze(symbolTable);
+    declarations.analyze(symbolTable);
+    statements.analyze(symbolTable);
   }
 }
 
@@ -256,9 +259,9 @@ class ExpListNode extends ASTnode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     boolean first = true;
-    for (ExpNode expression : this.expressions) {
+    for (ExpNode expression : expressions) {
       if (first) {
         first = false;
       } else {
@@ -294,6 +297,7 @@ class VarDeclNode extends DeclNode {
 
   public static int NOT_STRUCT = -1;
 
+  private VariableSym sym;
   private TypeNode type;
   private IdNode id;
   private int size;
@@ -304,46 +308,57 @@ class VarDeclNode extends DeclNode {
     this.id = id;
   }
 
+  public IdNode getId() {
+    return id;
+  }
+
+  public VariableSym getSym() {
+    return sym;
+  }
+
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.type.unparse(code, 0);
-
+    addIndent(code, indent);
+    type.unparse(code, 0);
     code.print(" ");
-    this.id.unparse(code, 0);
+    id.unparse(code, 0);
     code.println(";");
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym variableSymbol = new Sym(this.type.toString());
-    if (this.type instanceof StructNode) {
-      StructNode structNode = (StructNode)this.type;
-      structNode.analyze(symbolTable);
-      StructDefSym structDefSymbol = structNode.getStructDefSym();
-      if (structDefSymbol == null) {
-        return;
-      } else {
-        variableSymbol = new StructSym(structNode.getId().getValue());
+    boolean validDeclaration = true;
+    if (type instanceof StructNode) {
+      Sym structSym = symbolTable.lookupGlobal(id.getValue());
+      if (structSym == null || !(structSym instanceof StructSym)) {
+        ErrMsg.fatal(
+          id.getLineNum(),
+          id.getCharNum(),
+          "Invalid name of struct type"
+        );
+        validDeclaration = false;
       }
-    } else if (this.type instanceof VoidNode) {
+    } else if (type instanceof VoidNode) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Non-function declared void"
       );
-      return;
+      validDeclaration = false;
     }
-    try {
-      symbolTable.addDecl(this.id.getValue(), variableSymbol);
-    } catch (DuplicateSymException e) {
+    if (symbolTable.lookupLocal(id.getValue()) != null) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Multiply declared identifier"
       );
-    } catch (Exception e) {
-      System.err.println("Encountered an unexpected error");
-      System.exit(-1);
+      validDeclaration = false;
+    }
+    if (validDeclaration) {
+      try {
+        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type));
+      } catch (Exception e) {
+        System.err.println("Unexpected error");
+        System.exit(-1);
+      }
     }
   }
 }
@@ -368,42 +383,40 @@ class FnDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.type.unparse(code, 0);
-
+    addIndent(code, indent);
+    type.unparse(code, 0);
     code.print(" ");
-    this.id.unparse(code, 0);
-
+    id.unparse(code, 0);
     code.print(" (");
-    this.formals.unparse(code, 0);
-    
+    formals.unparse(code, 0);
     code.print(") ");
-    this.body.unparse(code, indent);
+    body.unparse(code, indent);
   }
 
   public void analyze(SymTable symbolTable) {
-    FnSym fnSym = new FnSym(this.type.toString());
-    try {
-      symbolTable.addDecl(this.id.getValue(), fnSym);
-    } catch (DuplicateSymException e) {
+    FunctionSym functionSym = new FunctionSym(type);
+    if (symbolTable.lookupLocal(id.getValue()) != null) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Multiply declared identifier"
       );
-    } catch (Exception e) {
-      System.out.println("Encountered an unexpected exception");
-      System.exit(-1);
+    } else {
+      try {
+        symbolTable.addDecl(id.getValue(), functionSym);
+      } catch (Exception e) {
+        System.err.println("Unexpected error");
+        System.exit(-1);
+      }
     }
     symbolTable.addScope();
-    this.formals.analyze(symbolTable);
-    fnSym.addFormals(this.formals.getSymbols());
-    this.body.analyze(symbolTable);
+    formals.analyze(symbolTable);
+    functionSym.setFormalSyms(formals.getSyms());
+    body.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
-      System.err.println("Encountered an unexpected error");
+      System.err.println("Unexpected error");
       System.exit(-1);
     }
   }
@@ -411,9 +424,9 @@ class FnDeclNode extends DeclNode {
 
 class FormalDeclNode extends DeclNode {
 
+  private VariableSym sym;
   private TypeNode type;
   private IdNode id;
-  private Sym sym;
 
   public FormalDeclNode(TypeNode type, IdNode id) {
     this.type = type;
@@ -421,39 +434,41 @@ class FormalDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.type.unparse(code, 0);
-
+    addIndent(code, indent);
+    type.unparse(code, 0);
     code.print(" ");
-    this.id.unparse(code, 0);
+    id.unparse(code, 0);
   }
 
-  public Sym getSym() {
-    return this.sym;
+  public VariableSym getSym() {
+    return sym;
   }
 
   public void analyze(SymTable symbolTable) {
-    if (this.type instanceof VoidNode) {
+    boolean validDeclaration = true;
+    if (type instanceof VoidNode) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Non-function declared void"
       );
+      validDeclaration = false;
     }
-    try {
-      Sym sym = new Sym(this.type.toString());
-      symbolTable.addDecl(this.id.getValue(), sym);
-      this.sym = sym;
-    } catch (DuplicateSymException e) {
+    if (symbolTable.lookupLocal(id.getValue()) != null) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Multiply declared identifier"
       );
-    } catch (Exception e) {
-      System.err.println("Encountered an unexpected error");
-      System.exit(-1);
+      validDeclaration = false;
+    }
+    if (validDeclaration) {
+      try {
+        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type));
+      } catch (Exception e) {
+        System.err.println("Unexpected error");
+        System.exit(-1);
+      }
     }
   }
 }
@@ -461,6 +476,7 @@ class FormalDeclNode extends DeclNode {
 class StructDeclNode extends DeclNode {
 
   private DeclListNode declarations;
+  private StructSym sym;
   private IdNode id;
 
   public StructDeclNode(IdNode id, DeclListNode declarations) {
@@ -469,35 +485,37 @@ class StructDeclNode extends DeclNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("struct ");
-
-    this.id.unparse(code, 0);
+    id.unparse(code, 0);
     code.println(" {");
-
-    this.declarations.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    declarations.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-    SymTable structSymTable = new SymTable();
-    StructDefSym structDefSym = new StructDefSym(structSymTable);
-    try {
-      symbolTable.addDecl(this.id.getValue(), structDefSym);
-    } catch (DuplicateSymException e) {
+    if (symbolTable.lookupLocal(id.getValue()) != null) {
       ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
+        id.getLineNum(),
+        id.getCharNum(),
         "Multiply declared identifier"
       );
-    } catch (Exception e) {
-      System.err.println("Encountered an unexpected error");
-      System.exit(-1);
+    } else {
+      try {
+        symbolTable.addDecl(id.getValue(), sym = new StructSym());
+      } catch (Exception e) {
+        System.err.println("Unexpected error");
+        System.exit(-1);
+      }
     }
-    this.declarations.analyze(structSymTable);
+    for (DeclNode declaration : declarations) {
+      VarDeclNode varDecl = (VarDeclNode)declaration;
+      varDecl.analyze(symbolTable);
+      if (varDecl.getSym() != null) {
+        sym.addMember(varDecl.getId().getValue(), varDecl.getSym());
+      }
+    }
   }
 }
 
@@ -505,96 +523,44 @@ class StructDeclNode extends DeclNode {
 // #### TypeNode and its Subclasses ####
 // **********************************************************************
 
-abstract class TypeNode extends ASTnode {
-
-  public abstract void analyze(SymTable symbolTable);
-}
+abstract class TypeNode extends ASTnode { }
 
 class IntNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("int");
-  }
-
-  public void analyze(SymTable symbolTable) { }
-
-  public String toString() {
-    return "int";
   }
 }
 
 class BoolNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("bool");
-  }
-
-  public void analyze(SymTable symbolTable) { }
-
-  public String toString() {
-    return "bool";
   }
 }
 
 class VoidNode extends TypeNode {
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("void");
-  }
-
-  public void analyze(SymTable symbolTable) { }
-
-  public String toString() {
-    return "void";
   }
 }
 
 class StructNode extends TypeNode {
 
-  private StructDefSym structDefSymbol;
   private IdNode id;
 
   public StructNode(IdNode id) {
     this.id = id;
   }
 
-  public IdNode getId() {
-    return this.id;
-  }
-
-  public StructDefSym getStructDefSym() {
-    return this.structDefSymbol;
-  }
-
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("struct ");
-
-    this.id.unparse(code, 0);
-  }
-
-  public void analyze(SymTable symbolTable) {
-    Sym symbol = symbolTable.lookupGlobal(this.id.getValue());
-    if (symbol == null || !(symbol instanceof StructDefSym)) {
-      ErrMsg.fatal(
-        this.id.getLineNum(),
-        this.id.getCharNum(),
-        "Invalid name of struct type"
-      );
-    } else {
-      this.structDefSymbol = (StructDefSym)symbol;
-    }
-  }
-
-  public String toString() {
-    return this.id.getValue();
+    id.unparse(code, 0);
   }
 }
 
@@ -616,15 +582,13 @@ class AssignStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.assign.unparse(code, 0);
-
+    addIndent(code, indent);
+    assign.unparse(code, 0);
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.assign.analyze(symbolTable);
+    assign.analyze(symbolTable);
   }
 }
 
@@ -637,16 +601,14 @@ class PreIncStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("++");
-
-    this.expression.unparse(code, 0);
+    expression.unparse(code, 0);
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -659,16 +621,14 @@ class PreDecStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("--");
-
-    this.expression.unparse(code, 0);
+    expression.unparse(code, 0);
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -681,16 +641,14 @@ class ReceiveStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("receive >> ");
-
-    this.expression.unparse(code, 0);
+    expression.unparse(code, 0);
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -703,10 +661,8 @@ class PrintStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("print << ");
-
     if (expression instanceof AssignNode) {
       code.print("(");
       expression.unparse(code, 0);
@@ -718,7 +674,7 @@ class PrintStmtNode extends StmtNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -739,10 +695,8 @@ class IfStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("if (");
-
     if (expression instanceof AssignNode) {
       code.print("(");
       expression.unparse(code, 0);
@@ -751,19 +705,17 @@ class IfStmtNode extends StmtNode {
       expression.unparse(code, 0);
     }
     code.println(") {");
-
-    this.declarations.unparse(code, indent + 2);
-    this.statements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    declarations.unparse(code, indent + 2);
+    statements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
     symbolTable.addScope();
-    this.declarations.analyze(symbolTable);
-    this.statements.analyze(symbolTable);
+    declarations.analyze(symbolTable);
+    statements.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
@@ -796,10 +748,8 @@ class IfElseStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("if (");
-
     if (expression instanceof AssignNode) {
       code.print("(");
       expression.unparse(code, 0);
@@ -808,37 +758,30 @@ class IfElseStmtNode extends StmtNode {
       expression.unparse(code, 0);
     }
     code.println(") {");
-
-    this.thenDeclarations.unparse(code, indent + 2);
-    this.thenStatements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    thenDeclarations.unparse(code, indent + 2);
+    thenStatements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("} else {");
-
-    this.elseDeclarations.unparse(code, indent + 2);
-    this.elseStatements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    elseDeclarations.unparse(code, indent + 2);
+    elseStatements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-
-    this.expression.analyze(symbolTable);
-
+    expression.analyze(symbolTable);
     symbolTable.addScope();
-    this.thenDeclarations.analyze(symbolTable);
-    this.thenStatements.analyze(symbolTable);
+    thenDeclarations.analyze(symbolTable);
+    thenStatements.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
       System.err.println("Encountered an unexpected error");
       System.exit(-1);
     }
-
     symbolTable.addScope();
-    this.elseDeclarations.analyze(symbolTable);
-    this.elseStatements.analyze(symbolTable);
+    elseDeclarations.analyze(symbolTable);
+    elseStatements.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
@@ -865,10 +808,8 @@ class WhileStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("while (");
-
     if (expression instanceof AssignNode) {
       code.print("(");
       expression.unparse(code, 0);
@@ -877,19 +818,17 @@ class WhileStmtNode extends StmtNode {
       expression.unparse(code, 0);
     }
     code.println(") {");
-
-    this.declarations.unparse(code, indent + 2);
-    this.statements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    declarations.unparse(code, indent + 2);
+    statements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
     symbolTable.addScope();
-    this.declarations.analyze(symbolTable);
-    this.statements.analyze(symbolTable);
+    declarations.analyze(symbolTable);
+    statements.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
@@ -916,10 +855,8 @@ class RepeatStmtNode extends StmtNode {
   }
 	
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("repeat (");
-
     if (expression instanceof AssignNode) {
       code.print("(");
       expression.unparse(code, 0);
@@ -928,19 +865,17 @@ class RepeatStmtNode extends StmtNode {
       expression.unparse(code, 0);
     }
     code.println(") {");
-
-    this.declarations.unparse(code, indent + 2);
-    this.statements.unparse(code, indent + 2);
-
-    this.addIndent(code, indent);
+    declarations.unparse(code, indent + 2);
+    statements.unparse(code, indent + 2);
+    addIndent(code, indent);
     code.println("}");
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
     symbolTable.addScope();
-    this.declarations.analyze(symbolTable);
-    this.statements.analyze(symbolTable);
+    declarations.analyze(symbolTable);
+    statements.analyze(symbolTable);
     try {
       symbolTable.removeScope();
     } catch (Exception e) {
@@ -959,15 +894,13 @@ class CallStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.callExpression.unparse(code, 0);
-
+    addIndent(code, indent);
+    callExpression.unparse(code, 0);
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.callExpression.analyze(symbolTable);
+    callExpression.analyze(symbolTable);
   }
 }
 
@@ -980,11 +913,9 @@ class ReturnStmtNode extends StmtNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("ret");
-
-    if (this.expression != null) {
+    if (expression != null) {
       code.print(" ");
       if (expression instanceof AssignNode) {
         code.print("(");
@@ -994,12 +925,11 @@ class ReturnStmtNode extends StmtNode {
         expression.unparse(code, 0);
       }
     }
-
     code.println(';');
   }
 
   public void analyze(SymTable symbolTable) {
-    this.expression.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -1009,7 +939,7 @@ class ReturnStmtNode extends StmtNode {
 
 abstract class ExpNode extends ASTnode {
 
-  public abstract void analyze(SymTable symbolTable);
+  public void analyze(SymTable symbolTable) { }
 }
 
 class IntLitNode extends ExpNode {
@@ -1025,12 +955,9 @@ class IntLitNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    code.print(this.value);
+    addIndent(code, indent);
+    code.print(value);
   }
-
-  public void analyze(SymTable symbolTable) { }
 }
 
 class StringLitNode extends ExpNode {
@@ -1046,12 +973,9 @@ class StringLitNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    code.printf(this.value);
+    addIndent(code, indent);
+    code.printf(value);
   }
-
-  public void analyze(SymTable symbolTable) { }
 }
 
 class TrueNode extends ExpNode {
@@ -1065,12 +989,9 @@ class TrueNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("true");
   }
-
-  public void analyze(SymTable symbolTable) { }
 }
 
 class FalseNode extends ExpNode {
@@ -1084,12 +1005,9 @@ class FalseNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("false");
   }
-
-  public void analyze(SymTable symbolTable) { }
 }
 
 class IdNode extends ExpNode {
@@ -1097,7 +1015,7 @@ class IdNode extends ExpNode {
   private String value;
   private int charNum;
   private int lineNum;
-  private Sym symbol;
+  private Sym sym;
 
   public IdNode(int lineNum, int charNum, String value) {
     this.charNum = charNum;
@@ -1106,23 +1024,29 @@ class IdNode extends ExpNode {
   }
 
   public void linkSymbol(Sym symbol) {
-    this.symbol = symbol;
+    sym = symbol;
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym sym = symbolTable.lookupGlobal(this.value);
-    if (sym == null) {
-      ErrMsg.fatal(this.lineNum, this.charNum, "Undeclared identifier");
+    Sym symbol = symbolTable.lookupGlobal(value);
+    if (symbol == null) {
+      ErrMsg.fatal(
+        lineNum,
+        charNum,
+        "Undeclared identifier"
+      );
     } else {
-      this.symbol = sym;
+      sym = symbol
     }
   }
 
   public void unparse(PrintWriter code, int indent) {
-    this.addIndent(code, indent);
-    code.print(this.value);
-    if (this.symbol != null) {
-      code.print("(" + this.symbol.toString() + ")");
+    addIndent(code, indent);
+    code.print(value);
+    if (symbol != null) {
+      code.print('(');
+      code.print(symbol.toString());
+      code.print(')');
     }
   }
 
@@ -1149,28 +1073,22 @@ class DotAccessExpNode extends ExpNode {
     this.id = id;
   }
 
-  public IdNode getId() {
-    return this.id;
-  }
-
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.accessor.unparse(code, 0);
-
+    addIndent(code, indent);
+    accessor.unparse(code, 0);
     code.print('.');
-    this.id.unparse(code, 0);
+    id.unparse(code, 0);
   }
 
   public void analyze(SymTable symbolTable) {
-    IdNode lhs = null;
-    if (this.accessor instanceof IdNode) {
-      lhs = (IdNode)this.accessor;
+    IdNode variableId = null;
+    if (accessor instanceof IdNode) {
+      variableId = (IdNode)accessor;
     } else {
-      DotAccessExpNode dotAccessNode = (DotAccessExpNode)this.accessor;
-      lhs = dotAccessNode.getId();
+      DotAccessExpNode dotAccessNode = (DotAccessExpNode)accessor;
+      variableId = dotAccessNode.id;
     }
-    Sym symbol = symbolTable.lookupGlobal(lhs.getValue());
+    Sym symbol = symbolTable.lookupGlobal(variableId.getValue());
     if (symbol == null || !(symbol instanceof StructSym)) {
       ErrMsg.fatal(
         lhs.getLineNum(),
@@ -1179,21 +1097,17 @@ class DotAccessExpNode extends ExpNode {
       );
     } else {
       StructSym structSym = (StructSym)symbol;
-      Sym structDef = symbolTable.lookupGlobal(structSym.getType());
-      StructDefSym structDefSym = (StructDefSym)structDef;
-      SymTable symTable = structDefSym.getStructSymTab();
-      Sym memberSym = symTable.lookupGlobal(this.id.getValue());
-      if (memberSym == null) {
+      if (!structSym.hasMember(id.getValue())) {
         ErrMsg.fatal(
-          this.id.getLineNum(),
-          this.id.getCharNum(),
+          id.getLineNum(),
+          id.getCharNum(),
           "Invalid struct field name"
         );
       } else {
-        this.id.linkSymbol(memberSym);
+        id.linkSymbol(structSym);
       }
     }
-    this.accessor.analyze(symbolTable);
+    accessor.analyze(symbolTable);
   }
 }
 
@@ -1208,10 +1122,8 @@ class AssignNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.leftHandSide.unparse(code, 0);
-
+    addIndent(code, indent);
+    leftHandSide.unparse(code, 0);
     code.print(" = ");
     if (expression instanceof AssignNode) {
       code.print("(");
@@ -1223,8 +1135,8 @@ class AssignNode extends ExpNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    this.leftHandSide.analyze(symbolTable);
-    this.expression.analyze(symbolTable);
+    leftHandSide.analyze(symbolTable);
+    expression.analyze(symbolTable);
   }
 }
 
@@ -1244,27 +1156,25 @@ class CallExpNode extends ExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
-    this.methodId.unparse(code, 0);
-
+    addIndent(code, indent);
+    methodId.unparse(code, 0);
     code.print('(');
-    this.parameterExpressions.unparse(code, 0);
+    parameterExpressions.unparse(code, 0);
     code.print(')');
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym symbol = symbolTable.lookupGlobal(this.methodId.getValue());
-    if (symbol == null || !(symbol instanceof FnSym)) {
+    Sym symbol = symbolTable.lookupGlobal(methodId.getValue());
+    if (symbol == null || !(symbol instanceof FunctionSym)) {
       ErrMsg.fatal(
-        this.methodId.getLineNum(),
-        this.methodId.getCharNum(),
+        methodId.getLineNum(),
+        methodId.getCharNum(),
         "Undeclared identifier"
       );
     } else {
-      this.methodId.linkSymbol((FnSym)symbol);
+      methodId.linkSymbol(symbol);
     }
-    this.parameterExpressions.analyze(symbolTable);
+    parameterExpressions.analyze(symbolTable);
   }
 }
 
@@ -1277,7 +1187,7 @@ abstract class UnaryExpNode extends ExpNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    this.exp.analyze(symbolTable);
+    exp.analyze(symbolTable);
   }
 }
 
@@ -1292,8 +1202,8 @@ abstract class BinaryExpNode extends ExpNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    this.exp1.analyze(symbolTable);
-    this.exp2.analyze(symbolTable);
+    exp1.analyze(symbolTable);
+    exp2.analyze(symbolTable);
   }
 }
 
@@ -1308,10 +1218,8 @@ class UnaryMinusNode extends UnaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(-");
-
     if (exp instanceof AssignNode) {
       code.print("(");
       exp.unparse(code, 0);
@@ -1330,10 +1238,8 @@ class NotNode extends UnaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(!");
-
     if (exp instanceof AssignNode) {
       code.print("(");
       exp.unparse(code, 0);
@@ -1356,10 +1262,8 @@ class PlusNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1368,7 +1272,6 @@ class PlusNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" + ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1387,10 +1290,8 @@ class MinusNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1399,7 +1300,6 @@ class MinusNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" - ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1418,10 +1318,8 @@ class TimesNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1430,7 +1328,6 @@ class TimesNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" * ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1449,10 +1346,8 @@ class DivideNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1461,7 +1356,6 @@ class DivideNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" / ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1480,10 +1374,8 @@ class AndNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1492,7 +1384,6 @@ class AndNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" && ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1511,10 +1402,8 @@ class OrNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1523,7 +1412,6 @@ class OrNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" || ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1542,10 +1430,8 @@ class EqualsNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1554,7 +1440,6 @@ class EqualsNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" == ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1573,10 +1458,8 @@ class NotEqualsNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1585,7 +1468,6 @@ class NotEqualsNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" != ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1604,10 +1486,8 @@ class LessNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1616,7 +1496,6 @@ class LessNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" < ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1635,10 +1514,8 @@ class GreaterNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1647,7 +1524,6 @@ class GreaterNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" > ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1666,10 +1542,8 @@ class LessEqNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-    
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1678,7 +1552,6 @@ class LessEqNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" <= ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);
@@ -1697,10 +1570,8 @@ class GreaterEqNode extends BinaryExpNode {
   }
 
   public void unparse(PrintWriter code, int indent) {
-
-    this.addIndent(code, indent);
+    addIndent(code, indent);
     code.print("(");
-
     if (exp1 instanceof AssignNode) {
       code.print("(");
       exp1.unparse(code, 0);
@@ -1709,7 +1580,6 @@ class GreaterEqNode extends BinaryExpNode {
       exp1.unparse(code, 0);
     }
     code.print(" >= ");
-
     if (exp2 instanceof AssignNode) {
       code.print("(");
       exp2.unparse(code, 0);

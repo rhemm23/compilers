@@ -1,31 +1,24 @@
-int main() {
-  int y;
-  int z;
-
-  y = y + z;
-  print << y;
-}
-
-struct Point {
+struct x {
   int x;
-  int y;
-}
-int f(int x, bool b) {}
-void g() {
-  int a;
-  bool b;
-  struct Point p;
-  p.x = a;
-  b = a == 3;
-  f(a + p.y * 2, b);
-  g();
+  bool y;
 }
 
-int x;
-bool y;
-int a(int x, bool y){
-  int a;
-  a = 10;
+struct z {
+  struct x a;
 }
 
-struct Point p;
+int h;
+bool g;
+
+int main() {
+  int h;
+  bool g;
+}
+
+void test(int a, bool b, int c) {
+
+}
+
+bool test1() {
+
+}
