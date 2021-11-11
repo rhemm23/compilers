@@ -2,45 +2,27 @@ import java.util.*;
 
 public class Sym {
 
-  public enum Types {
-    STRUCTDEF,
-    STRUCT,
-    FUNCTION,
-    STANDARD
-  }
-
-  private Types type; 
+  private String type; 
   
-  public Sym(Types type) {
+  public Sym(String type) {
     this.type = type;
   }
   
-  public Types getType() {
+  public String getType() {
     return type;
   }
   
   public String toString() {
-    switch (this.type) {
-      case STRUCT:
-        return "struct";
-
-      case STRUCTDEF:
-        return "structDef";
-
-      case FUNCTION:
-        return "function";
-      default:
-        return "standard";
-    }
+    return type;
   }
 }
 
 class FnSym extends Sym {
   private List<Sym> formals;
-  private Types returnType;
+  private String returnType;
 
-  public FnSym(Types returnType) {
-    super(Types.FUNCTION);
+  public FnSym(String returnType) {
+    super("function");
     this.returnType = returnType;
   }
 
@@ -52,7 +34,7 @@ class FnSym extends Sym {
     return this.formals;
   }
 
-  public Types getReturnType() {
+  public String getReturnType() {
     return returnType;
   }
 
@@ -66,7 +48,7 @@ class StructDefSym extends Sym {
   private SymTable structSymTab;
 
   public StructDefSym(SymTable symTab) {
-    super(Types.STRUCTDEF);
+    super("structDef");
     structSymTab = symTab;
   }
 
@@ -78,6 +60,6 @@ class StructDefSym extends Sym {
 class StructSym extends Sym {
   
   public StructSym() {
-    super(Types.STRUCT);
+    super("struct");
   }
 }
