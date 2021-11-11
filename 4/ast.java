@@ -131,6 +131,10 @@ class ProgramNode extends ASTnode {
         myDeclList.unparse(p, indent);
     }
 
+    public void analyze(SymTable symtable) {
+        myDeclList.analyze(symtable);
+    }
+
     // 1 kid
     private DeclListNode myDeclList;
 }
@@ -140,8 +144,14 @@ class DeclListNode extends ASTnode {
         myDecls = S;
     }
 
+    public void analyze(SymTable symtable) {
+        for (DeclNode decl : myDecls) decl.analyze(symtable);
+    }
+
+    // TODO: Add analyze with global symTable
+
     public void unparse(PrintWriter p, int indent) {
-        Iterator it = myDecls.iterator();
+        Iterator<DeclNode> it = myDecls.iterator();
         try {
             while (it.hasNext()) {
                 ((DeclNode)it.next()).unparse(p, indent);
@@ -159,6 +169,15 @@ class DeclListNode extends ASTnode {
 class FormalsListNode extends ASTnode {
     public FormalsListNode(List<FormalDeclNode> S) {
         myFormals = S;
+    }
+
+    public void analyze(SymTable symtable) {
+        try {
+            for (FormalDeclNode formalDecl : myFormals) formalDecl.analyze(symtable);
+        } catch (NoSuchElementException ex) {
+            System.err.println("unexpected NoSuchElementException in DeclListNode.print");
+            System.exit(-1);
+        }
     }
 
     public void unparse(PrintWriter p, int indent) {
