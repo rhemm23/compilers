@@ -6,7 +6,8 @@ public class Sym {
     STRUCT,
     FUNCTION,
     FORMAL,
-    VARIABLE
+    VARIABLE,
+    STRUCT_VARIABLE
   }
 
   private Types type;
@@ -30,6 +31,9 @@ public class Sym {
       case FORMAL:
         return "formal";
 
+      case STRUCT_VARIABLE:
+        return "struct variable";
+
       default:
         return "variable";
     }
@@ -47,5 +51,19 @@ class StructSym extends Sym {
 
   public SymTable getSymTable() {
     return this.symbolTable;
+  }
+}
+
+class StructVariableSym extends Sym {
+
+  private StructSym structSymbol;
+
+  public StructVariableSym(StructSym structSymbol) {
+    super(Sym.Types.STRUCT_VARIABLE);
+    this.structSymbol = structSymbol;
+  }
+
+  public StructSym getStructSym() {
+    return this.structSymbol;
   }
 }

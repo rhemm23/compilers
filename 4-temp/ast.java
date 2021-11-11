@@ -308,18 +308,26 @@ class VarDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
+    Sym variableSymbol = new Sym(Sym.Types.VARIABLE);
     if (this.type instanceof StructNode) {
       StructNode structNode = (StructNode)this.type;
       structNode.analyze(symbolTable);
+      StructSym structSymbol = structNode.getStructSym();
+      if (structSymbol == null) {
+        return;
+      } else {
+        variableSymbol = new StructVariableSym(structSymbol);
+      }
     } else if (this.type instanceof VoidNode) {
       ErrMsg.fatal(
         this.id.getLineNum(),
         this.id.getCharNum(),
         "Non-function declared void"
       );
+      return;
     }
     try {
-      symbolTable.addDecl(this.id.getValue(), new Sym(Sym.Types.VARIABLE));
+      symbolTable.addDecl(this.id.getValue(), variableSymbol);
     } catch (DuplicateSymException e) {
       ErrMsg.fatal(
         this.id.getLineNum(),
@@ -520,10 +528,15 @@ class VoidNode extends TypeNode {
 
 class StructNode extends TypeNode {
 
+  private StructSym structSymbol;
   private IdNode id;
 
   public StructNode(IdNode id) {
     this.id = id;
+  }
+
+  public StructSym getStructSym() {
+    return this.structSymbol;
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -542,6 +555,8 @@ class StructNode extends TypeNode {
         this.id.getCharNum(),
         "Invalid name of struct type"
       );
+    } else {
+      this.structSymbol = (StructSym)symbol;
     }
   }
 }
@@ -1107,15 +1122,15 @@ class DotAccessExpNode extends ExpNode {
       lhs = dotAccessNode.getId();
     }
     Sym symbol = symbolTable.lookupGlobal(lhs.getValue());
-    if (symbol == null || !(symbol instanceof StructSym)) {
+    if (symbol == null || !(symbol instanceof StructVariableSym)) {
       ErrMsg.fatal(
         lhs.getLineNum(),
         lhs.getCharNum(),
         "Dot-access of non-struct type"
       );
     } else {
-      StructSym structSymbol = (StructSym)symbol;
-      Sym memberSymbol = structSymbol.getSymTable().lookupGlobal(this.id.getValue());
+      StructVariableSym structVariableSymbol = (StructVariableSym)symbol;
+      Sym memberSymbol = structVariableSymbol.getStructSym().getSymTable().lookupGlobal(this.id.getValue());
       if (memberSymbol == null) {
         ErrMsg.fatal(
           this.id.getLineNum(),
