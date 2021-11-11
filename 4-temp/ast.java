@@ -368,10 +368,6 @@ class FnDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    if (this.type instanceof StructNode) {
-      StructNode structNode = (StructNode)this.type;
-      structNode.analyze(symbolTable);
-    }
     try {
       symbolTable.addDecl(this.id.getValue(), new Sym(Sym.Types.FUNCTION));
     } catch (DuplicateSymException e) {
@@ -387,6 +383,12 @@ class FnDeclNode extends DeclNode {
     symbolTable.addScope();
     this.formals.analyze(symbolTable);
     this.body.analyze(symbolTable);
+    try {
+      symbolTable.removeScope();
+    } catch (Exception e) {
+      System.err.println("Encountered an unexpected error");
+      System.exit(-1);
+    }
   }
 }
 
@@ -410,10 +412,7 @@ class FormalDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    if (this.type instanceof StructNode) {
-      StructNode structNode = (StructNode)this.type;
-      structNode.analyze(symbolTable);
-    } else if (this.type instanceof VoidNode) {
+    if (this.type instanceof VoidNode) {
       ErrMsg.fatal(
         this.id.getLineNum(),
         this.id.getCharNum(),
@@ -710,6 +709,12 @@ class IfStmtNode extends StmtNode {
     symbolTable.addScope();
     this.declarations.analyze(symbolTable);
     this.statements.analyze(symbolTable);
+    try {
+      symbolTable.removeScope();
+    } catch (Exception e) {
+      System.err.println("Encountered an unexpected error");
+      System.exit(-1);
+    }
   }
 }
 
