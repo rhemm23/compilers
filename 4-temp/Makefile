@@ -41,8 +41,11 @@ ErrMsg.class: ErrMsg.java
 Sym.class: Sym.java
 	$(JC) $(FLAGS) -cp $(CP) Sym.java
 
-SymTable.class: SymTable.java Sym.class DuplicateSymException.class WrongArgumentException.class EmptySymTableException.class
+SymTable.class: SymTable.java Sym.class Type.class DuplicateSymException.class WrongArgumentException.class EmptySymTableException.class
 	$(JC) $(FLAGS) -cp $(CP) SymTable.java
+
+Type.class: Type.java
+	$(JC) $(FLAGS) -cp $(CP) Type.java
 
 DuplicateSymException.class: DuplicateSymException.java
 	$(JC) $(FLAGS) -cp $(CP) DuplicateSymException.java

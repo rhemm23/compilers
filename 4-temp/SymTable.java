@@ -40,7 +40,7 @@ public class SymTable {
     } 
     return this.scopes.get(0).get(name);
   }
-    
+
   public Sym lookupGlobal(String name) {
     if (this.scopes.isEmpty()) {
       return null;

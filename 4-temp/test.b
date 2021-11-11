@@ -1,24 +1,14 @@
-struct x {
-  int x;
-  bool y;
+struct Point {
+    int x;
+    int y;
 }
-
-struct z {
-  struct x a;
-}
-
-int h;
-bool g;
-
-int main() {
-  int h;
-  bool g;
-}
-
-void test(int a, bool b, int c) {
-
-}
-
-bool test1() {
-
+int f(int x, bool b) { }
+void g() {
+    int a;
+    bool b;
+    struct Point p;
+    p.x = a;
+    b = a == 3;
+    f(a + p.y*2, b);
+    g();
 }
