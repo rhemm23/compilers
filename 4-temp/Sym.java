@@ -2,29 +2,29 @@ import java.util.*;
 
 public abstract class Sym { }
 
-public class VariableSym extends Sym {
+class VariableSym extends Sym {
 
-  private TypeNode type;
+  private String type;
 
-  public VariableSym(TypeNode type) {
+  public VariableSym(String type) {
     this.type = type;
   }
 
-  public TypeNode getType() {
+  public String getType() {
     return type;
   }
 
   public String toString() {
-    return type.toString();
+    return type;
   }
 }
 
-public class FunctionSym extends Sym {
+class FunctionSym extends Sym {
 
   private List<Sym> formalSyms;
-  private TypeNode returnType;
+  private String returnType;
 
-  public FunctionSym(TypeNode returnType) {
+  public FunctionSym(String returnType) {
     this.returnType = returnType;
   }
 
@@ -33,7 +33,7 @@ public class FunctionSym extends Sym {
   }
 }
 
-public class StructSym extends Sym {
+class StructSym extends Sym {
 
   private HashMap<String, VariableSym> members;
 

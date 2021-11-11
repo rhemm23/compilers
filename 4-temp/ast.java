@@ -307,9 +307,9 @@ class VarDeclNode extends DeclNode {
     this.size = size;
     this.id = id;
   }
-
-  public IdNode getId() {
-    return id;
+  
+  public String name() {
+    return id.name();
   }
 
   public VariableSym getSym() {
@@ -327,34 +327,35 @@ class VarDeclNode extends DeclNode {
   public void analyze(SymTable symbolTable) {
     boolean validDeclaration = true;
     if (type instanceof StructNode) {
-      Sym structSym = symbolTable.lookupGlobal(id.getValue());
+      StructNode structNode = (StructNode)type;
+      Sym structSym = symbolTable.lookupGlobal(structNode.name());
       if (structSym == null || !(structSym instanceof StructSym)) {
         ErrMsg.fatal(
-          id.getLineNum(),
-          id.getCharNum(),
+          id.lineNum(),
+          id.charNum(),
           "Invalid name of struct type"
         );
         validDeclaration = false;
       }
     } else if (type instanceof VoidNode) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Non-function declared void"
       );
       validDeclaration = false;
     }
-    if (symbolTable.lookupLocal(id.getValue()) != null) {
+    if (symbolTable.lookupLocal(id.name()) != null) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Multiply declared identifier"
       );
       validDeclaration = false;
     }
     if (validDeclaration) {
       try {
-        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type));
+        symbolTable.addDecl(id.name(), sym = new VariableSym(type.toString()));
       } catch (Exception e) {
         System.err.println("Unexpected error");
         System.exit(-1);
@@ -394,16 +395,16 @@ class FnDeclNode extends DeclNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    FunctionSym functionSym = new FunctionSym(type);
-    if (symbolTable.lookupLocal(id.getValue()) != null) {
+    FunctionSym functionSym = new FunctionSym(type.toString());
+    if (symbolTable.lookupLocal(id.name()) != null) {
       ErrMsg.fatal(
-        id.getLineNum(),
-        id.getCharNum(),
+        id.lineNum(),
+        id.charNum(),
         "Multiply declared identifier"
       );
     } else {
       try {
-        symbolTable.addDecl(id.getValue(), functionSym);
+        symbolTable.addDecl(id.name(), functionSym);
       } catch (Exception e) {
         System.err.println("Unexpected error");
         System.exit(-1);
@@ -464,7 +465,7 @@ class FormalDeclNode extends DeclNode {
     }
     if (validDeclaration) {
       try {
-        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type));
+        symbolTable.addDecl(id.getValue(), sym = new VariableSym(type.toString()));
       } catch (Exception e) {
         System.err.println("Unexpected error");
         System.exit(-1);
@@ -509,12 +510,19 @@ class StructDeclNode extends DeclNode {
         System.exit(-1);
       }
     }
+    symbolTable.addScope();
     for (DeclNode declaration : declarations) {
       VarDeclNode varDecl = (VarDeclNode)declaration;
       varDecl.analyze(symbolTable);
       if (varDecl.getSym() != null) {
         sym.addMember(varDecl.getId().getValue(), varDecl.getSym());
       }
+    }
+    try {
+      symbolTable.removeScope();
+    } catch (Exception e) {
+      System.err.println("Unexpected error");
+      System.exit(-1);
     }
   }
 }
@@ -555,6 +563,10 @@ class StructNode extends TypeNode {
 
   public StructNode(IdNode id) {
     this.id = id;
+  }
+
+  public String name() {
+    return id.name();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1023,6 +1035,18 @@ class IdNode extends ExpNode {
     this.value = value;
   }
 
+  public String name() {
+    return value;
+  }
+
+  public int lineNum() {
+    return lineNum;
+  }
+  
+  public int charNum() {
+    return charNum;
+  }
+
   public void linkSymbol(Sym symbol) {
     sym = symbol;
   }
@@ -1036,30 +1060,18 @@ class IdNode extends ExpNode {
         "Undeclared identifier"
       );
     } else {
-      sym = symbol
+      sym = symbol;
     }
   }
 
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print(value);
-    if (symbol != null) {
+    if (sym != null) {
       code.print('(');
-      code.print(symbol.toString());
+      code.print(sym.toString());
       code.print(')');
     }
-  }
-
-  public String getValue() {
-    return this.value;
-  }
-
-  public int getCharNum() {
-    return this.charNum;
-  }
-
-  public int getLineNum() {
-    return this.lineNum;
   }
 }
 
@@ -1088,19 +1100,19 @@ class DotAccessExpNode extends ExpNode {
       DotAccessExpNode dotAccessNode = (DotAccessExpNode)accessor;
       variableId = dotAccessNode.id;
     }
-    Sym symbol = symbolTable.lookupGlobal(variableId.getValue());
+    Sym symbol = symbolTable.lookupGlobal(variableId.name());
     if (symbol == null || !(symbol instanceof StructSym)) {
       ErrMsg.fatal(
-        lhs.getLineNum(),
-        lhs.getCharNum(),
+        variableId.lineNum(),
+        variableId.charNum(),
         "Dot-access of non-struct type"
       );
     } else {
       StructSym structSym = (StructSym)symbol;
-      if (!structSym.hasMember(id.getValue())) {
+      if (!structSym.hasMember(id.name())) {
         ErrMsg.fatal(
-          id.getLineNum(),
-          id.getCharNum(),
+          id.lineNum(),
+          id.charNum(),
           "Invalid struct field name"
         );
       } else {
@@ -1164,11 +1176,11 @@ class CallExpNode extends ExpNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym symbol = symbolTable.lookupGlobal(methodId.getValue());
+    Sym symbol = symbolTable.lookupGlobal(methodId.name());
     if (symbol == null || !(symbol instanceof FunctionSym)) {
       ErrMsg.fatal(
-        methodId.getLineNum(),
-        methodId.getCharNum(),
+        methodId.lineNum(),
+        methodId.charNum(),
         "Undeclared identifier"
       );
     } else {
