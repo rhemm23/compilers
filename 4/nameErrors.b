@@ -12,7 +12,7 @@ bool mul_var;                    // Multiply declared identifier
 int mul_var() {}                 // Multiply declared identifier
 struct mul_var {                 // Multiply declared identifier
   int mul_var;                   //
-};                               //
+}                               //
 int mul_var() {}                 // Multiply declared identifier
 int mul_func() {}                //
 int mul_func() {}                // Multiply declared identifier
@@ -22,11 +22,11 @@ struct mul_struct {              //
   int mul_var;                   // Multiply declared identifier
   bool mul_var;                  // Multiply declared identifier
   void mul_var;  // Multiply declared identifier + Non-function declared void
-};               //
+}               //
 struct mul_struct {  // Multiply declared identifier
   int mul_var;       //
   bool mul_var;      // Multiply declared identifier
-};                   //
+}                   //
 int mul_body() {     //
   int mul_var;       //
   int mul_var;       // Multiply declared identifier
@@ -71,7 +71,7 @@ void mul_var;                     // Non-function declared void
                                   // Multiply declared identifier
 struct void_struct {              //
   void mul_var;                   // Non-function declared void
-};                                //
+}                                //
 int void_formal(void void_var) {  // Non-function declared void
   void a;                         // Non-function declared void
   void a;                         // Non-function declared void
