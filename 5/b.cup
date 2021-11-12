@@ -6,54 +6,54 @@ parser code {:
     if (currToken.value == null) {
       ErrMsg.fatal(0, 0, "Syntax error at end of file");
     } else {
-      TokenVal token = (TokenVal)currToken.value;
-      ErrMsg.fatal(token.linenum, token.charnum, "Syntax error");
+      Token token = (Token)currToken.value;
+      ErrMsg.fatal(token.lineNum, token.charNum, "Syntax error");
     }
     System.exit(-1);
   }
 :};
 
-terminal                INT;
-terminal                BOOL;
-terminal                VOID;
-terminal TokenVal       TRUE;
-terminal TokenVal       FALSE;
-terminal                STRUCT;
-terminal                RECEIVE;
-terminal                PRINT;
-terminal                IF;
-terminal                ELSE;
-terminal                WHILE;
-terminal                REPEAT;
-terminal                RETURN;
-terminal IdTokenVal     ID;
-terminal IntLitTokenVal INTLITERAL;
-terminal StrLitTokenVal STRINGLITERAL;
-terminal                LCURLY;
-terminal                RCURLY;
-terminal                LPAREN;
-terminal                RPAREN;
-terminal                SEMICOLON;
-terminal                COMMA;
-terminal                DOT;
-terminal                WRITE;
-terminal                READ;
-terminal                PLUSPLUS;
-terminal                MINUSMINUS;
-terminal                PLUS;
-terminal                MINUS;
-terminal                TIMES;
-terminal                DIVIDE;
-terminal                NOT;
-terminal                AND;
-terminal                OR;
-terminal                EQUALS;
-terminal                NOTEQUALS;
-terminal                LESS;
-terminal                GREATER;
-terminal                LESSEQ;
-terminal                GREATEREQ;
-terminal                ASSIGN;
+terminal                    INT;
+terminal                    BOOL;
+terminal                    VOID;
+terminal Token              TRUE;
+terminal Token              FALSE;
+terminal                    STRUCT;
+terminal                    RECEIVE;
+terminal                    PRINT;
+terminal                    IF;
+terminal                    ELSE;
+terminal                    WHILE;
+terminal                    REPEAT;
+terminal                    RETURN;
+terminal IdToken            ID;
+terminal IntLiteralToken    INTLITERAL;
+terminal StringLiteralToken STRINGLITERAL;
+terminal                    LCURLY;
+terminal                    RCURLY;
+terminal                    LPAREN;
+terminal                    RPAREN;
+terminal                    SEMICOLON;
+terminal                    COMMA;
+terminal                    DOT;
+terminal                    WRITE;
+terminal                    READ;
+terminal                    PLUSPLUS;
+terminal                    MINUSMINUS;
+terminal                    PLUS;
+terminal                    MINUS;
+terminal                    TIMES;
+terminal                    DIVIDE;
+terminal                    NOT;
+terminal                    AND;
+terminal                    OR;
+terminal                    EQUALS;
+terminal                    NOTEQUALS;
+terminal                    LESS;
+terminal                    GREATER;
+terminal                    LESSEQ;
+terminal                    GREATEREQ;
+terminal                    ASSIGN;
 
 non terminal ProgramNode      program;
 non terminal LinkedList       declList;
@@ -95,7 +95,7 @@ program         ::= declList:dl
 
 declList        ::= declList:dl decl:d
                 {:
-                  dl.addLast(d);
+                  dl.add(d);
                   RESULT = dl;
                 :}
                 |
@@ -118,7 +118,7 @@ decl            ::= varDecl:v
 
 varDeclList     ::= varDeclList:dl varDecl:d
                 {:
-                  dl.addLast(d);
+                  dl.add(d);
                   RESULT = dl;
                 :}
                 |
@@ -169,7 +169,7 @@ formals         ::= LPAREN RPAREN
 formalsList     ::= formalDecl:d
                 {:
                   LinkedList<FormalDeclNode> fl = new LinkedList<FormalDeclNode>();
-                  fl.addLast(d);
+                  fl.add(d);
                   RESULT = fl;
                 :}
                 | formalDecl:d COMMA formalsList:fl
@@ -323,19 +323,19 @@ term            ::= loc:e
                 :}
                 | INTLITERAL:i
                 {:
-                  RESULT = new IntLitNode(i.linenum, i.charnum, i.intVal);
+                  RESULT = new IntLitNode(i.lineNum, i.charNum, i.value);
                 :}
                 | STRINGLITERAL:s
                 {:
-                  RESULT = new StringLitNode(s.linenum, s.charnum, s.strVal);
+                  RESULT = new StringLitNode(s.lineNum, s.charNum, s.value);
                 :}
                 | TRUE:t
                 {:
-                  RESULT = new TrueNode(t.linenum, t.charnum);
+                  RESULT = new TrueNode(t.lineNum, t.charNum);
                 :}
                 | FALSE:f
                 {:
-                  RESULT = new FalseNode(f.linenum, f.charnum);
+                  RESULT = new FalseNode(f.lineNum, f.charNum);
                 :}
                 | LPAREN exp:e RPAREN
                 {:
@@ -391,5 +391,5 @@ loc             ::= id:i
                 
 id              ::= ID:i
                 {:
-                  RESULT = new IdNode(i.linenum, i.charnum, i.idVal);
+                  RESULT = new IdNode(i.lineNum, i.charNum, i.value);
                 :};
