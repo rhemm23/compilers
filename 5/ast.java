@@ -869,6 +869,15 @@ class WhileStmtNode extends StmtNode {
     this.statements = statements;
     this.expression = expression;
   }
+
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (!type.isErrorType() && !type.isBoolType()) {
+      expression.reportError("Non-bool expression used as while condition");
+    }
+    declarations.typeCheck();
+    statments.typeCheck();
+  }
 	
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
@@ -915,6 +924,15 @@ class RepeatStmtNode extends StmtNode {
     this.declarations = declarations;
     this.statements = statements;
     this.expression = expression;
+  }
+
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (!type.isErrorType() && !type.isIntType()) {
+      expression.reportError("Non-integer expression used as repeat clause");
+    }
+    declarations.typeCheck();
+    statments.typeCheck();
   }
 	
   public void unparse(PrintWriter code, int indent) {
