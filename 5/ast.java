@@ -690,6 +690,17 @@ class ReceiveStmtNode extends StmtNode {
     this.expression = expression;
   }
 
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (type.isFnType()) {
+      expression.reportError("Attempt to read function");
+    } else if (type.isStructDefType()) {
+      expression.reportError("Attempt to read struct name");
+    } else if (type.isStructType()) {
+      expression.reportError("Attempt to read struct variable");
+    }
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("receive >> ");
@@ -710,6 +721,19 @@ class PrintStmtNode extends StmtNode {
     this.expression = expression;
   }
 
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (type.isFnType()) {
+      expression.reportError("Attempt to write function");
+    } else if (type.isStructDefType()) {
+      expression.reportError("Attempt to write struct name");
+    } else if (type.isStructType()) {
+      expression.reportError("Attempt to write struct variable");
+    } else if (type.isVoidType()) {
+      expression.reportError("Attempt to write void");
+    }
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("print << ");
@@ -721,19 +745,6 @@ class PrintStmtNode extends StmtNode {
       expression.unparse(code, 0);
     }
     code.println(';');
-  }
-
-  public void typeCheck() {
-    Type type = expression.typeCheck();
-    if (type.isStructType()) {
-      IdNode 
-      if (expression instanceof IdNode) {
-
-      } else {
-        DotAccessExpNode dotAccess = (DotAccessExpNode)expression;
-      }
-      ErrMsg.fatal()
-    }
   }
 
   public void analyze(SymTable symbolTable) {
@@ -755,6 +766,15 @@ class IfStmtNode extends StmtNode {
     this.declarations = declarations;
     this.statements = statements;
     this.expression = expression;
+  }
+
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (!type.isErrorType() && !type.isBoolType()) {
+      expression.reportError("Non-bool expression used as if condition");
+    }
+    declarations.typeCheck();
+    statements.typeCheck();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -808,6 +828,17 @@ class IfElseStmtNode extends StmtNode {
     this.thenStatements = thenStatements;
     this.elseStatements = elseStatements;
     this.expression = expression;
+  }
+
+  public void typeCheck() {
+    Type type = expression.typeCheck();
+    if (!type.isErrorType() && !type.isBoolType()) {
+      expression.reportError("Non-bool expression used as if condition");
+    }
+    thenDeclarations.typeCheck();
+    thenStatements.typeCheck();
+    elseDeclarations.typeCheck();
+    elseStatements.typeCheck();
   }
 
   public void unparse(PrintWriter code, int indent) {
