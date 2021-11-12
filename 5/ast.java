@@ -225,9 +225,9 @@ class FnBodyNode extends ASTnode {
     this.statements = statements;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     declarations.typeCheck();
-    statements.typeCheck();
+    statements.typeCheck(fnType);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -256,9 +256,9 @@ class StmtListNode extends ASTnode implements Iterable<StmtNode> {
     return statements.iterator();
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     for (StmtNode statement : this) {
-      statement.typeCheck();
+      statement.typeCheck(fnType);
     }
   }
 
@@ -275,7 +275,7 @@ class StmtListNode extends ASTnode implements Iterable<StmtNode> {
   }
 }
 
-class ExpListNode extends ASTnode implements Iterable<ExpNode> {
+class ExpListNode extends ASTnode {
 
   private List<ExpNode> expressions;
 
@@ -283,14 +283,14 @@ class ExpListNode extends ASTnode implements Iterable<ExpNode> {
     this.expressions = expressions;
   }
 
-  public Iterator<ExpNode> iterator() {
-    return expressions.iterator();
+  public List<ExpNode> getExpressionList() {
+    return expressions;
   }
 
   public void unparse(PrintWriter code, int indent) {
     boolean first = true;
     addIndent(code, indent);
-    for (ExpNode expression : this) {
+    for (ExpNode expression : expressions) {
       if (first) {
         first = false;
       } else {
@@ -307,7 +307,7 @@ class ExpListNode extends ASTnode implements Iterable<ExpNode> {
   }
 
   public void analyze(SymTable symbolTable) {
-    for (ExpNode expression : this) {
+    for (ExpNode expression : expressions) {
       expression.analyze(symbolTable);
     }
   }
@@ -401,7 +401,7 @@ class FnDeclNode extends DeclNode {
   }
 
   public void typeCheck() {
-    body.typeCheck();
+    body.typeCheck(type.getType());
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -581,7 +581,7 @@ class StructNode extends TypeNode {
 
 abstract class StmtNode extends ASTnode {
 
-  public abstract void typeCheck();
+  public abstract void typeCheck(Type fnType);
 
   public abstract void analyze(SymTable symbolTable);
 }
@@ -594,7 +594,7 @@ class AssignStmtNode extends StmtNode {
     this.assign = assign;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     assign.typeCheck();
   }
 
@@ -617,7 +617,7 @@ class PreIncStmtNode extends StmtNode {
     this.exp = exp;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
       exp.reportError("Arithmetic operator applied to non-numeric operand");
@@ -644,7 +644,7 @@ class PreDecStmtNode extends StmtNode {
     this.exp = exp;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
       exp.reportError("Arithmetic operator applied to non-numeric operand");
@@ -671,7 +671,7 @@ class ReceiveStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (type.isFnType()) {
       expression.reportError("Attempt to read function");
@@ -702,7 +702,7 @@ class PrintStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (type.isFnType()) {
       expression.reportError("Attempt to write function");
@@ -749,13 +749,13 @@ class IfStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (!type.isErrorType() && !type.isBoolType()) {
       expression.reportError("Non-bool expression used as if condition");
     }
     declarations.typeCheck();
-    statements.typeCheck();
+    statements.typeCheck(fnType);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -806,15 +806,15 @@ class IfElseStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (!type.isErrorType() && !type.isBoolType()) {
       expression.reportError("Non-bool expression used as if condition");
     }
     thenDeclarations.typeCheck();
-    thenStatements.typeCheck();
+    thenStatements.typeCheck(fnType);
     elseDeclarations.typeCheck();
-    elseStatements.typeCheck();
+    elseStatements.typeCheck(fnType);
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -867,13 +867,13 @@ class WhileStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (!type.isErrorType() && !type.isBoolType()) {
       expression.reportError("Non-bool expression used as while condition");
     }
     declarations.typeCheck();
-    statements.typeCheck();
+    statements.typeCheck(fnType);
   }
 	
   public void unparse(PrintWriter code, int indent) {
@@ -918,13 +918,13 @@ class RepeatStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     Type type = expression.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
       expression.reportError("Non-integer expression used as repeat clause");
     }
     declarations.typeCheck();
-    statements.typeCheck();
+    statements.typeCheck(fnType);
   }
 	
   public void unparse(PrintWriter code, int indent) {
@@ -961,7 +961,7 @@ class CallStmtNode extends StmtNode {
     this.callExpression = callExpression;
   }
 
-  public void typeCheck() {
+  public void typeCheck(Type fnType) {
     callExpression.typeCheck();
   }
 
@@ -984,8 +984,21 @@ class ReturnStmtNode extends StmtNode {
     this.expression = expression;
   }
 
-  public void typeCheck() {
-
+  public void typeCheck(Type fnType) {
+    if (expression == null) {
+      if (!fnType.isVoidType()) {
+        ErrMsg.fatal(0, 0, "Missing return value");
+      }
+    } else {
+      if (fnType.isVoidType()) {
+        expression.reportError("Return with value in void function");
+      } else {
+        Type returnedType = expression.typeCheck();
+        if (!returnedType.equals(fnType)) {
+          expression.reportError("Bad return value");
+        }
+      }
+    }
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1188,7 +1201,7 @@ class DotAccessExpNode extends ExpNode {
   }
 
   public void reportError(String error) {
-    accessor.reportError(error);
+    id.reportError(error);
   }
 
   public IdNode getId() {
@@ -1308,12 +1321,27 @@ class CallExpNode extends ExpNode {
   }
 
   public Type typeCheck() {
-    Type type = methodId.typeCheck();
-    if ( !type.isFnType()) {
+    Symb sym = methodId.getSym();
+    if (sym instanceof FnSym) {
+      FnSym fnSym = (FnSym)sym;
+      List<Type> formalTypes = fnSym.getFormalTypes();
+      List<ExpNode> expressionList = parameterExpressions.getExpressionList();
+      if (formalTypes.size() == expressionList.size()) {
+        for (int i = 0; i < expressionList.size(); i++) {
+          Type actualType = expressionList.get(i).typeCheck();
+          Type formalType = formalTypes.get(i);
+          if (!actualType.equals(formalType)) {
+            expressionList.get(i).reportError("Type of actual does not match type of formal");
+          }
+        }
+        return fnSym.getReturnType();
+      } else {
+        methodId.reportError("Function call with wrong number of args");
+      }
+    } else {
       methodId.reportError("Attempt to call non-function");
     }
     return new ErrorType();
-    // TODO
   }
 
   public void unparse(PrintWriter code, int indent) {
