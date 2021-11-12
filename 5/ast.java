@@ -1401,6 +1401,15 @@ class NotNode extends UnaryExpNode {
     super(exp);
   }
 
+  public Type typeCheck() {
+    Type type = exp.typeCheck();
+    if (type.isErrorType() || type.isBoolType()) {
+      return type;
+    }
+    exp.reportError("Logical operator applied to non-bool operand");
+    return new ErrorType();
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("(!");
@@ -1605,6 +1614,23 @@ class AndNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.isBoolType()) {
+      exp1.reportError("Logical operator applied to non-bool operand");
+      return new ErrorType();
+    } else if (!rightType.isBoolType()) {
+      exp2.reportError("Logical operator applied to non-bool operand");
+      return new ErrorType();
+    }
+    return new BoolType();
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("(");
@@ -1631,6 +1657,23 @@ class OrNode extends BinaryExpNode {
 
   public OrNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.isBoolType()) {
+      exp1.reportError("Logical operator applied to non-bool operand");
+      return new ErrorType();
+    } else if (!rightType.isBoolType()) {
+      exp2.reportError("Logical operator applied to non-bool operand");
+      return new ErrorType();
+    }
+    return new BoolType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1724,7 +1767,14 @@ class LessNode extends BinaryExpNode {
       return leftType;
     } else if (rightType.isErrorType()) {
       return rightType;
-    } else if (!leftType.isIntType() || )
+    } else if (!leftType.isIntType()) {
+      exp1.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    } else if (!rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    }
+    return new BoolType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1755,6 +1805,23 @@ class GreaterNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.isIntType()) {
+      exp1.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    } else if (!rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    }
+    return new BoolType();
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("(");
@@ -1783,6 +1850,23 @@ class LessEqNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.isIntType()) {
+      exp1.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    } else if (!rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    }
+    return new BoolType();
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("(");
@@ -1809,6 +1893,23 @@ class GreaterEqNode extends BinaryExpNode {
 
   public GreaterEqNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.isIntType()) {
+      exp1.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    } else if (!rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+      return new ErrorType();
+    }
+    return new BoolType();
   }
 
   public void unparse(PrintWriter code, int indent) {
