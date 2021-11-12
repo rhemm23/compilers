@@ -23,7 +23,7 @@ parser.java: b.cup
 Yylex.class: b.jlex.java sym.class ErrMsg.class
 	$(JC) -g -cp $(CP) b.jlex.java
 
-ASTnode.class: ast.java Type.java Sym.class
+ASTnode.class: ast.java Type.java Symb.class
 	$(JC) -g -cp $(CP) ast.java Type.java
 
 b.jlex.java: b.jlex sym.class
@@ -38,10 +38,10 @@ sym.java: b.cup
 ErrMsg.class: ErrMsg.java
 	$(JC) -g -cp $(CP) ErrMsg.java
 
-Sym.class: Sym.java Type.class ast.java
-	$(JC) -g -cp $(CP) Sym.java ast.java
+Symb.class: Symb.java Type.class ast.java
+	$(JC) -g -cp $(CP) Symb.java ast.java
 
-SymTable.class: SymTable.java Sym.class DuplicateSymException.class EmptySymTableException.class WrongArgumentException.class
+SymTable.class: SymTable.java Symb.class DuplicateSymException.class EmptySymTableException.class WrongArgumentException.class
 	$(JC) -g -cp $(CP) SymTable.java
 
 Type.class: Type.java

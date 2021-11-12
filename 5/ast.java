@@ -206,7 +206,7 @@ class FormalsListNode extends ASTnode implements Iterable<FormalDeclNode> {
   public List<Type> analyze(SymTable symbolTable) {
     List<Type> formalTypes = new LinkedList<Type>();
     for (FormalDeclNode formal : this) {
-      Sym sym = formal.analyze(symbolTable);
+      Symb sym = formal.analyze(symbolTable);
       if (sym != null) {
         formalTypes.add(sym.getType());
       }
@@ -321,7 +321,7 @@ abstract class DeclNode extends ASTnode {
 
   public void typeCheck() { }
 
-  public abstract Sym analyze(SymTable symbolTable);
+  public abstract Symb analyze(SymTable symbolTable);
 }
 
 class VarDeclNode extends DeclNode {
@@ -346,7 +346,7 @@ class VarDeclNode extends DeclNode {
     code.println(";");
   }
 
-  public Sym analyze(SymTable symbolTable) {
+  public Symb analyze(SymTable symbolTable) {
     IdNode structId = null;
     boolean validDeclaration = true;
     if (type instanceof VoidNode) {
@@ -354,7 +354,7 @@ class VarDeclNode extends DeclNode {
       validDeclaration = false;
     } else if (type instanceof StructNode) {
       structId = ((StructNode)type).getStructId();
-      Sym sym = symbolTable.lookupGlobal(structId.getValue());
+      Symb sym = symbolTable.lookupGlobal(structId.getValue());
       if (sym == null || !(sym instanceof StructDefSym)) {
         structId.reportError("Invalid name of struct type");
         validDeclaration = false;
@@ -367,11 +367,11 @@ class VarDeclNode extends DeclNode {
       validDeclaration = false;
     }
     if (validDeclaration) {
-      Sym sym = null;
+      Symb sym = null;
       if (type instanceof StructNode) {
         sym = new StructSym(structId);
       } else {
-        sym = new Sym(type.getType());
+        sym = new Symb(type.getType());
       }
       symbolTable.addDeclaration(id.getValue(), sym);
       id.link(sym);
@@ -415,7 +415,7 @@ class FnDeclNode extends DeclNode {
     body.unparse(code, indent);
   }
 
-  public Sym analyze(SymTable symbolTable) {
+  public Symb analyze(SymTable symbolTable) {
     FnSym sym = new FnSym(type.getType());
     if (symbolTable.lookupLocal(id.getValue()) != null) {
       id.reportError("Multiply declared identifier");
@@ -448,7 +448,7 @@ class FormalDeclNode extends DeclNode {
     id.unparse(code, 0);
   }
 
-  public Sym analyze(SymTable symbolTable) {
+  public Symb analyze(SymTable symbolTable) {
     boolean validDeclaration = true;
     if (type instanceof VoidNode) {
       id.reportError("Non-function declared void");
@@ -459,7 +459,7 @@ class FormalDeclNode extends DeclNode {
       validDeclaration = false;
     }
     if (validDeclaration) {
-      Sym sym = new Sym(type.getType());
+      Symb sym = new Symb(type.getType());
       symbolTable.addDeclaration(id.getValue(), sym);
       id.link(sym);
       return sym;
@@ -488,7 +488,7 @@ class StructDeclNode extends DeclNode {
     code.println("}");
   }
 
-  public Sym analyze(SymTable symbolTable) {
+  public Symb analyze(SymTable symbolTable) {
     StructDefSym structDefSym = new StructDefSym();
     if (symbolTable.lookupLocal(id.getValue()) != null) {
       id.reportError("Multiply declared identifier");
@@ -498,7 +498,7 @@ class StructDeclNode extends DeclNode {
     }
     for (DeclNode declaration : declarations) {
       VarDeclNode var = (VarDeclNode)declaration;
-      Sym sym = var.analyze(symbolTable);
+      Symb sym = var.analyze(symbolTable);
       if (sym != null) {
         structDefSym.addMember(var.getId().getValue(), sym);
       }
@@ -1129,7 +1129,7 @@ class IdNode extends ExpNode {
   private String value;
   private int charNum;
   private int lineNum;
-  private Sym sym;
+  private Symb sym;
 
   public IdNode(int lineNum, int charNum, String value) {
     this.lineNum = lineNum;
@@ -1145,16 +1145,16 @@ class IdNode extends ExpNode {
     ErrMsg.fatal(lineNum, charNum, error);
   }
 
-  public Sym getSym() {
+  public Symb getSym() {
     return sym;
   }
 
-  public void link(Sym sym) {
+  public void link(Symb sym) {
     this.sym = sym;
   }
 
   public void analyze(SymTable symbolTable) {
-    Sym sym = symbolTable.lookupGlobal(value);
+    Symb sym = symbolTable.lookupGlobal(value);
     if (sym == null) {
       reportError("Undeclared identifier");
     } else {
@@ -1214,12 +1214,12 @@ class DotAccessExpNode extends ExpNode {
     } else {
       lhs = ((DotAccessExpNode)accessor).getId();
     }
-    Sym sym = lhs.getSym();
+    Symb sym = lhs.getSym();
     if (sym != null) {
       if (sym instanceof StructSym) {
         IdNode structId = ((StructSym)sym).getStructId();
         StructDefSym structDef = (StructDefSym)structId.getSym();
-        Sym member = structDef.getMember(id.getValue());
+        Symb member = structDef.getMember(id.getValue());
         if (member == null) {
           id.reportError("Invalid struct field name");
         } else {
@@ -1442,18 +1442,16 @@ class PlusNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new IntType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Arithmetic operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new IntType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1487,18 +1485,16 @@ class MinusNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new IntType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Arithmetic operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new IntType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1532,18 +1528,16 @@ class TimesNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new IntType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Arithmetic operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new IntType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1577,18 +1571,16 @@ class DivideNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Arithmetic operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new IntType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Arithmetic operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new IntType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1622,18 +1614,16 @@ class AndNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isBoolType()) {
+    if (!leftType.isErrorType() && !leftType.isBoolType()) {
       exp1.reportError("Logical operator applied to non-bool operand");
-      return new ErrorType();
-    } else if (!rightType.isBoolType()) {
-      exp2.reportError("Logical operator applied to non-bool operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isBoolType()) {
+      exp2.reportError("Logical operator applied to non-bool operand");
+    }
+    if (leftType.isBoolType() && rightType.isBoolType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1667,18 +1657,16 @@ class OrNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isBoolType()) {
+    if (!leftType.isErrorType() && !leftType.isBoolType()) {
       exp1.reportError("Logical operator applied to non-bool operand");
-      return new ErrorType();
-    } else if (!rightType.isBoolType()) {
-      exp2.reportError("Logical operator applied to non-bool operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isBoolType()) {
+      exp2.reportError("Logical operator applied to non-bool operand");
+    }
+    if (leftType.isBoolType() && rightType.isBoolType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1820,18 +1808,16 @@ class LessNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1865,18 +1851,16 @@ class GreaterNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1910,18 +1894,16 @@ class LessEqNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1955,18 +1937,16 @@ class GreaterEqNode extends BinaryExpNode {
   public Type typeCheck() {
     Type leftType = exp1.typeCheck();
     Type rightType = exp2.typeCheck();
-    if (leftType.isErrorType()) {
-      return leftType;
-    } else if (rightType.isErrorType()) {
-      return rightType;
-    } else if (!leftType.isIntType()) {
+    if (!leftType.isErrorType() && !leftType.isIntType()) {
       exp1.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
-    } else if (!rightType.isIntType()) {
-      exp2.reportError("Relational operator applied to non-numeric operand");
-      return new ErrorType();
     }
-    return new BoolType();
+    if (!rightType.isErrorType() && !rightType.isIntType()) {
+      exp2.reportError("Relational operator applied to non-numeric operand");
+    }
+    if (leftType.isIntType() && rightType.isIntType()) {
+      return new BoolType();
+    }
+    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {

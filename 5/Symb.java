@@ -1,10 +1,10 @@
 import java.util.*;
 
-public class Sym {
+public class Symb {
 
   private Type type;
   
-  public Sym(Type type) {
+  public Symb(Type type) {
     this.type = type;
   }
   
@@ -17,7 +17,7 @@ public class Sym {
   }
 }
 
-class FnSym extends Sym {
+class FnSym extends Symb {
 
   private List<Type> formalTypes;
   private Type returnType;
@@ -54,7 +54,7 @@ class FnSym extends Sym {
   }
 }
 
-class StructSym extends Sym {
+class StructSym extends Symb {
 
   private IdNode id;
 
@@ -68,20 +68,20 @@ class StructSym extends Sym {
   }
 }
 
-class StructDefSym extends Sym {
+class StructDefSym extends Symb {
 
-  private HashMap<String, Sym> members;
+  private HashMap<String, Symb> members;
 
   public StructDefSym() {
     super(new StructDefType());
-    members = new HashMap<String, Sym>();
+    members = new HashMap<String, Symb>();
   }
 
-  public void addMember(String name, Sym symbol) {
+  public void addMember(String name, Symb symbol) {
     members.put(name, symbol);
   }
 
-  public Sym getMember(String name) {
+  public Symb getMember(String name) {
     return members.get(name);
   }
 }

@@ -142,8 +142,7 @@ public class P5 {
 			return P5.RESULT_SYNTAX_ERROR;
 		}
 		
-		astRoot.nameAnalysis();  // perform name analysis
-		
+		astRoot.analyze();  // perform name analysis
 		astRoot.typeCheck();
 		
 		astRoot.unparse(outFile, 0);
