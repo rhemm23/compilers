@@ -1,71 +1,52 @@
 import java.util.*;
 
 public class SymTable {
-    private List<HashMap<String, Symb>> list;
+
+  private List<HashMap<String, Sym>> scopes;
     
-    public SymTable() {
-        list = new LinkedList<HashMap<String, Symb>>();
-        list.add(new HashMap<String, Symb>());
-    }
+  public SymTable() {
+    scopes = new LinkedList<HashMap<String, Sym>>();
+    addScope();
+  }
     
-    public void addDecl(String name, Symb sym) 
-	throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-	if (name == null && sym == null) {
-	    throw new WrongArgumentException("Arguments name and sym are null.");
-	}
-	else if (name == null) {
-	    throw new WrongArgumentException("Argument name is null.");
-	}
-	else if (sym == null) {
-	    throw new WrongArgumentException("Argument sym is null.");
-	}
-               
-        if (list.isEmpty()) {
-            throw new EmptySymTableException();
-        }
-	
-        HashMap<String, Symb> symTab = list.get(0);
-        if (symTab.containsKey(name))
-            throw new DuplicateSymException();
-        
-        symTab.put(name, sym);
+  public void addDeclaration(String name, Sym sym) {        
+    if (!scopes.isEmpty() && !scopes.get(0).containsKey(name)) {
+      scopes.get(0).put(name, sym);
     }
+  }
     
-    public void addScope() {
-        list.add(0, new HashMap<String, Symb>());
-    }
+  public void addScope() {
+    scopes.add(0, new HashMap<String, Sym>());
+  }
     
-    public Symb lookupLocal(String name) {
-        if (list.isEmpty())
-            return null;
-        
-        HashMap<String, Symb> symTab = list.get(0); 
-        return symTab.get(name);
+  public Sym lookupLocal(String name) {
+    if (!scopes.isEmpty()) {
+      return scopes.get(0).get(name);
     }
+    return null;
+  }
     
-    public Symb lookupGlobal(String name) {
-        if (list.isEmpty())
-            return null;
-        
-        for (HashMap<String, Symb> symTab : list) {
-            Symb sym = symTab.get(name);
-            if (sym != null)
-                return sym;
-        }
-        return null;
+  public Sym lookupGlobal(String name) {
+    for (HashMap<String, Sym> scope : scopes) {
+      Sym sym = scope.get(name);
+      if (sym != null) {
+        return sym;
+      }
     }
+    return null;
+  }
     
-    public void removeScope() throws EmptySymTableException {
-        if (list.isEmpty())
-            throw new EmptySymTableException();
-        list.remove(0);
+  public void removeScope() {
+    if (!scopes.isEmpty()) {
+      scopes.remove(0);
     }
+  }
     
-    public void print() {
-        System.out.print("\n=== Symb Table ===\n");
-        for (HashMap<String, Symb> symTab : list) {
-            System.out.println(symTab.toString());
-        }
-        System.out.println();
+  public void print() {
+    System.out.println("\n=== Sym Table ===");
+    for (HashMap<String, Sym> scope : scopes) {
+      System.out.println(scope.toString());
     }
+    System.out.println();
+  }
 }
