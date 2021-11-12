@@ -1,4 +1,3 @@
-
 public abstract class Type {
 
   public abstract String toString();
@@ -25,15 +24,15 @@ public abstract class Type {
     return false;
   }
 
-  public boolean isFnType() {
+  public boolean isFunctionType() {
     return false;
   }
 
-  public boolean isStructType() {
+  public boolean isStructVariableType() {
     return false;
   }
 
-  public boolean isStructDefType() {
+  public boolean isStructDefinitionType() {
     return false;
   }
 }
@@ -44,8 +43,8 @@ class ErrorType extends Type {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isErrorType();
+  public boolean equals(Type type) {
+    return type.isErrorType();
   }
 
   public String toString() {
@@ -59,8 +58,8 @@ class IntType extends Type {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isIntType();
+  public boolean equals(Type type) {
+    return type.isIntType();
   }
 
   public String toString() {
@@ -74,8 +73,8 @@ class BoolType extends Type {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isBoolType();
+  public boolean equals(Type type) {
+    return type.isBoolType();
   }
 
   public String toString() {
@@ -89,8 +88,8 @@ class VoidType extends Type {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isVoidType();
+  public boolean equals(Type type) {
+    return type.isVoidType();
   }
 
   public String toString() {
@@ -149,14 +148,14 @@ class StructType extends Type {
   }
 }
 
-class StructDefType extends Type {
+class StructDefinitionType extends Type {
 
-  public boolean isStructDefType() {
+  public boolean isStructDefinitionType() {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isStructDefType();
+  public boolean equals(Type type) {
+    return type.isStructDefinitionType();
   }
 
   public String toString() {

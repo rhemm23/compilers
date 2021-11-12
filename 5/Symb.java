@@ -1,13 +1,15 @@
 import java.util.*;
 
-public class Symb {
+public abstract class Symb { }
+
+public class VariableSymbol extends Symb {
 
   private Type type;
-  
-  public Symb(Type type) {
+
+  public VariableSymbol(Type type) {
     this.type = type;
   }
-  
+
   public Type getType() {
     return type;
   }
@@ -21,7 +23,7 @@ class FnSym extends Symb {
 
   private List<Type> formalTypes;
   private Type returnType;
-    
+
   public FnSym(Type returnType) {
     super(new FnType());
     this.formalTypes = new LinkedList<Type>();

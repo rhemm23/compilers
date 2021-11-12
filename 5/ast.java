@@ -991,7 +991,7 @@ class ReturnStmtNode extends StmtNode {
       Type returnedType = expression.typeCheck();
       if (fnType.isVoidType()) {
         expression.reportError("Return with value in void function");
-      } else if (!returnedType.equals(fnType)) {
+      } else if (!returnedType.isErrorType() && !returnedType.equals(fnType)) {
         expression.reportError("Bad return value");
       }
     } else if (!fnType.isVoidType()) {
@@ -1079,7 +1079,7 @@ class StringLitNode extends ExpNode {
 
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
-    code.printf(value);
+    code.print(value);
   }
 
   public Type typeCheck() {
@@ -1103,7 +1103,7 @@ class TrueNode extends ExpNode {
 
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
-    code.print("true");
+    code.print("tru");
   }
 
   public Type typeCheck() {
@@ -1127,7 +1127,7 @@ class FalseNode extends ExpNode {
 
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
-    code.print("false");
+    code.print("fls");
   }
 
   public Type typeCheck() {
@@ -1325,14 +1325,16 @@ class CallExpNode extends ExpNode {
       List<Type> formalTypes = fnSym.getFormalTypes();
       List<ExpNode> expressionList = parameterExpressions.getExpressionList();
       if (formalTypes.size() == expressionList.size()) {
+        Type returnType = fnSym.getReturnType();
         for (int i = 0; i < expressionList.size(); i++) {
           Type actualType = expressionList.get(i).typeCheck();
           Type formalType = formalTypes.get(i);
           if (!actualType.equals(formalType)) {
             expressionList.get(i).reportError("Type of actual does not match type of formal");
+            returnType = new ErrorType();
           }
         }
-        return fnSym.getReturnType();
+        return returnType;
       } else {
         methodId.reportError("Function call with wrong number of args");
       }
