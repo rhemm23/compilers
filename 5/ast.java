@@ -206,7 +206,7 @@ class FormalsListNode extends ASTnode implements Iterable<FormalDeclNode> {
   public List<Type> analyze(SymTable symbolTable) {
     List<Type> formalTypes = new LinkedList<Type>();
     for (FormalDeclNode formal : this) {
-      Sym sym = formal.analyze();
+      Sym sym = formal.analyze(symbolTable);
       if (sym != null) {
         formalTypes.add(sym.getType());
       }
@@ -223,6 +223,11 @@ class FnBodyNode extends ASTnode {
   public FnBodyNode(DeclListNode declarations, StmtListNode statements) {
     this.declarations = declarations;
     this.statements = statements;
+  }
+
+  public void typeCheck() {
+    declarations.typeCheck();
+    statements.typeCheck();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -249,6 +254,12 @@ class StmtListNode extends ASTnode implements Iterable<StmtNode> {
 
   public Iterator<StmtNode> iterator() {
     return statements.iterator();
+  }
+
+  public void typeCheck() {
+    for (StmtNode statement : this) {
+      statement.typeCheck();
+    }
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -348,7 +359,7 @@ class VarDeclNode extends DeclNode {
         structId.reportError("Invalid name of struct type");
         validDeclaration = false;
       } else {
-        structId.linkSymbol(sym);
+        structId.link(sym);
       }
     }
     if (symbolTable.lookupLocal(id.getValue()) != null) {
@@ -363,7 +374,7 @@ class VarDeclNode extends DeclNode {
         sym = new Sym(type.getType());
       }
       symbolTable.addDeclaration(id.getValue(), sym);
-      id.linkSymbol(sym);
+      id.link(sym);
       return sym;
     }
     return null;
@@ -407,10 +418,10 @@ class FnDeclNode extends DeclNode {
   public Sym analyze(SymTable symbolTable) {
     FnSym sym = new FnSym(type.getType());
     if (symbolTable.lookupLocal(id.getValue()) != null) {
-      id.fatalError("Multiply declared identifier");
+      id.reportError("Multiply declared identifier");
     } else {
       symbolTable.addDeclaration(id.getValue(), sym);
-      id.linkSymbol(sym);
+      id.link(sym);
     }
     symbolTable.addScope();
     sym.setFormalTypes(formals.analyze(symbolTable));
@@ -443,14 +454,14 @@ class FormalDeclNode extends DeclNode {
       id.reportError("Non-function declared void");
       validDeclaration = false;
     }
-    if (symbolTable.lookupLocal(id.name()) != null) {
+    if (symbolTable.lookupLocal(id.getValue()) != null) {
       id.reportError("Multiply declared identifier");
       validDeclaration = false;
     }
     if (validDeclaration) {
       Sym sym = new Sym(type.getType());
       symbolTable.addDeclaration(id.getValue(), sym);
-      id.linkSymbol(sym);
+      id.link(sym);
       return sym;
     }
     return null;
@@ -483,7 +494,7 @@ class StructDeclNode extends DeclNode {
       id.reportError("Multiply declared identifier");
     } else {
       symbolTable.addDeclaration(id.getValue(), structDefSym);
-      id.linkSymbol(structDefSym);
+      id.link(structDefSym);
     }
     for (DeclNode declaration : declarations) {
       VarDeclNode var = (VarDeclNode)declaration;
@@ -549,6 +560,10 @@ class StructNode extends TypeNode {
     this.id = id;
   }
 
+  public IdNode getStructId() {
+    return id;
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("struct ");
@@ -556,7 +571,7 @@ class StructNode extends TypeNode {
   }
 
   public Type getType() {
-    return StructType(id);
+    return new StructType(id);
   }
 }
 
@@ -602,13 +617,11 @@ class PreIncStmtNode extends StmtNode {
     this.exp = exp;
   }
 
-  public Type typeCheck() {
+  public void typeCheck() {
     Type type = exp.typeCheck();
-    if (type.isErrorType() || type.isIntType()) {
-      return type;
+    if (!type.isErrorType() && !type.isIntType()) {
+      exp.reportError("Arithmetic operator applied to non-numeric operand");
     }
-    exp.reportError("Arithmetic operator applied to non-numeric operand");
-    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -631,13 +644,11 @@ class PreDecStmtNode extends StmtNode {
     this.exp = exp;
   }
 
-  public Type typeCheck() {
+  public void typeCheck() {
     Type type = exp.typeCheck();
-    if (type.isErrorType() || type.isIntType()) {
-      return type;
+    if (!type.isErrorType() && !type.isIntType()) {
+      exp.reportError("Arithmetic operator applied to non-numeric operand");
     }
-    exp.reportError("Arithmetic operator applied to non-numeric operand");
-    return new ErrorType();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -862,7 +873,7 @@ class WhileStmtNode extends StmtNode {
       expression.reportError("Non-bool expression used as while condition");
     }
     declarations.typeCheck();
-    statments.typeCheck();
+    statements.typeCheck();
   }
 	
   public void unparse(PrintWriter code, int indent) {
@@ -913,7 +924,7 @@ class RepeatStmtNode extends StmtNode {
       expression.reportError("Non-integer expression used as repeat clause");
     }
     declarations.typeCheck();
-    statments.typeCheck();
+    statements.typeCheck();
   }
 	
   public void unparse(PrintWriter code, int indent) {
@@ -948,6 +959,10 @@ class CallStmtNode extends StmtNode {
 
   public CallStmtNode(CallExpNode callExpression) {
     this.callExpression = callExpression;
+  }
+
+  public void typeCheck() {
+    callExpression.typeCheck();
   }
 
   public void unparse(PrintWriter code, int indent) {
@@ -1228,7 +1243,7 @@ class AssignNode extends ExpNode {
   }
 
   public void reportError(String error) {
-    leftHandSide.reportError(error)
+    leftHandSide.reportError(error);
   }
 
   public Type typeCheck() {
@@ -1297,7 +1312,7 @@ class CallExpNode extends ExpNode {
     if ( !type.isFnType()) {
       methodId.reportError("Attempt to call non-function");
     }
-
+    return new ErrorType();
     // TODO
   }
 

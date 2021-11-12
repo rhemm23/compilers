@@ -81,7 +81,7 @@ class StructDefSym extends Sym {
     members.put(name, symbol);
   }
 
-  public boolean getMember(String name) {
+  public Sym getMember(String name) {
     return members.get(name);
   }
 }
