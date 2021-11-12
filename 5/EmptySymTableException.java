@@ -1,3 +1,1 @@
-public class EmptySymTableException extends Exception {
-
-}
+public class EmptySymTableException extends Exception { }

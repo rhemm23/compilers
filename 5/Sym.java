@@ -1,23 +1,20 @@
 import java.util.*;
 
-/**
- * The Symb class defines a symbol-table entry. 
- * Each Symb contains a type (a Type).
- */
-public class Symb {
-    private Type type;
-    
-    public Symb(Type type) {
-        this.type = type;
-    }
-    
-    public Type getType() {
-        return type;
-    }
-    
-    public String toString() {
-        return type.toString();
-    }
+public class Sym {
+
+  private Type type;
+  
+  public Sym(Type type) {
+    this.type = type;
+  }
+  
+  public Type getType() {
+    return type;
+  }
+  
+  public String toString() {
+    return type.toString();
+  }
 }
 
 /**
