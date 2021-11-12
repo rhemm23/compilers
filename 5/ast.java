@@ -1704,6 +1704,32 @@ class EqualsNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.equals(rightType)) {
+      exp1.reportError("Type mismatch");
+      return new ErrorType();
+    } else if (leftType.isVoidType()) {
+      exp1.reportError("Equality operator applied to void functions");
+      return new ErrorType();
+    } else if (leftType.isFnType()) {
+      exp1.reportError("Equality operator applied to functions");
+      return new ErrorType();
+    } else if (leftType.isStructDefType()) {
+      exp1.reportError("Equality operator applied to struct names");
+      return new ErrorType();
+    } else if (leftType.isStructType()) {
+      exp1.reportError("Equality operator applied to struct variables");
+      return new ErrorType();
+    }
+    return new BoolType();
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     code.print("(");
@@ -1730,6 +1756,32 @@ class NotEqualsNode extends BinaryExpNode {
 
   public NotEqualsNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public Type typeCheck() {
+    Type leftType = exp1.typeCheck();
+    Type rightType = exp2.typeCheck();
+    if (leftType.isErrorType()) {
+      return leftType;
+    } else if (rightType.isErrorType()) {
+      return rightType;
+    } else if (!leftType.equals(rightType)) {
+      exp1.reportError("Type mismatch");
+      return new ErrorType();
+    } else if (leftType.isVoidType()) {
+      exp1.reportError("Equality operator applied to void functions");
+      return new ErrorType();
+    } else if (leftType.isFnType()) {
+      exp1.reportError("Equality operator applied to functions");
+      return new ErrorType();
+    } else if (leftType.isStructDefType()) {
+      exp1.reportError("Equality operator applied to struct names");
+      return new ErrorType();
+    } else if (leftType.isStructType()) {
+      exp1.reportError("Equality operator applied to struct variables");
+      return new ErrorType();
+    }
+    return new BoolType();
   }
 
   public void unparse(PrintWriter code, int indent) {
