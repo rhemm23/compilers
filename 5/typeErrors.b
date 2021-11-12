@@ -18,6 +18,7 @@ int test1(int a, bool b, int c) {
 
 void main() {
 
+  bool d;
   struct data a;
 
   print << main;
@@ -36,4 +37,6 @@ void main() {
 
   ret a.b;
   ret fls > tru;
+
+  d = (8 && fls);
 }
