@@ -496,6 +496,7 @@ class StructDeclNode extends DeclNode {
       symbolTable.addDeclaration(id.getValue(), structDefSym);
       id.link(structDefSym);
     }
+    symbolTable.addScope();
     for (DeclNode declaration : declarations) {
       VarDeclNode var = (VarDeclNode)declaration;
       Symb sym = var.analyze(symbolTable);
@@ -503,6 +504,7 @@ class StructDeclNode extends DeclNode {
         structDefSym.addMember(var.getId().getValue(), sym);
       }
     }
+    symbolTable.removeScope();
     return structDefSym;
   }
 }
@@ -985,19 +987,15 @@ class ReturnStmtNode extends StmtNode {
   }
 
   public void typeCheck(Type fnType) {
-    if (expression == null) {
-      if (!fnType.isVoidType()) {
-        ErrMsg.fatal(0, 0, "Missing return value");
-      }
-    } else {
+    if (expression != null) {
+      Type returnedType = expression.typeCheck();
       if (fnType.isVoidType()) {
         expression.reportError("Return with value in void function");
-      } else {
-        Type returnedType = expression.typeCheck();
-        if (!returnedType.equals(fnType)) {
-          expression.reportError("Bad return value");
-        }
+      } else if (!returnedType.equals(fnType)) {
+        expression.reportError("Bad return value");
       }
+    } else if (!fnType.isVoidType()) {
+      ErrMsg.fatal(0, 0, "Missing return value");
     }
   }
 
