@@ -1,4 +1,5 @@
 import java.util.LinkedList;
+import java.util.Stack;
 import java.util.List;
 
 import java.io.PrintWriter;
@@ -75,7 +76,7 @@ class VarDeclNode extends DeclNode {
 
   public Symb analyze(SymTable symbolTable) {
 
-    Symb sym;
+    Symb sym = null;
     boolean isVoidType = type instanceof VoidNode;
     boolean isDeclared = symbolTable.lookupLocal(id.getValue()) != null;
 
@@ -146,21 +147,19 @@ class FnDeclNode extends DeclNode {
   }
 
   public Symb analyze(SymTable symbolTable) {
-    Symb sym;
-    if (symbolTable.lookupLocal(id.getValue()) == null) {
-      sym = new FunctionSymbol(type.getType());
-      List<Type> formalTypes = new LinkedList<Type>();
-      for (FormalDeclNode formal : formals) {
-        formalTypes.add(formal.getTypeNode().getType());
-      }
-      sym.setFormalTypes(formalTypes);
-      symbolTable.addDeclaration(id.getValue(), sym);
-    } else {
+    FunctionSymbol sym = new FunctionSymbol(type.getType());
+    boolean isDeclared = symbolTable.lookupLocal(id.getValue()) != null;
+    if (isDeclared) {
       id.reportError("Multiply declared identifier");
+    } else {
+      symbolTable.addDeclaration(id.getValue(), sym);
     }
     symbolTable.addScope();
     for (FormalDeclNode formal : formals) {
-      formal.analyze(symbolTable);
+      Symb formalSym = formal.analyze(symbolTable);
+      if (formalSym != null && formalSym instanceof VariableSymbol) {
+        sym.addFormalType(((VariableSymbol)formalSym).getType());
+      }
     }
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
@@ -169,7 +168,7 @@ class FnDeclNode extends DeclNode {
       statement.analyze(symbolTable);
     }
     symbolTable.removeScope();
-    return sym;
+    return isDeclared ? null : sym;
   }
 }
 
@@ -852,46 +851,25 @@ class DotAccessExpNode extends ExpNode {
   }
 
   public void analyze(SymTable symbolTable) {
-    ExpNode left = accessor;
-    Stack<IdNode> ids = new Stack<IdNode>();
-    ids.push(id);
-    while (left instanceof DotAccessExpNode) {
-      DotAccessExpNode dotAccess = (DotAccessExpNode)left;
-      ids.push(dotAccess.getIdNode());
-      left = dotAccess.getAccessorNode();
-    }
-    IdNode base = (IdNode)left;
-    base.analyze(symbolTable);
-    if (base.getSym() == null || !(base.getSym() instanceof Stru))
-    while (!ids.empty()) {
-      IdNode access = ids.pop();
-      Symb sym = base.getSym();
-      if (sym == null || !(sym instanceof Struct))
-    }
-
-
-
+    Symb sym;
     accessor.analyze(symbolTable);
-    IdNode leftId;
     if (accessor instanceof IdNode) {
-      leftId = (IdNode)accessor;
+      IdNode leftId = (IdNode)accessor;
+      sym = leftId.getSym();
     } else {
-      leftId = ((DotAccessExpNode)accessor).getIdNode();
+      DotAccessExpNode dotAccess = (DotAccessExpNode)accessor;
+      sym = dotAccess.getIdNode().getSym();
     }
-    Symb sym = symbolTable.lookupGlobal(leftId.getValue());
-    if (sym == null || !(sym instanceof VariableSymbol)) {
-      leftId.reportError("Dot-access of non-struct type");
-    } else {
-      VariableSymbol variableSym = (VariableSymbol)sym;
-      Type variableType = variableSym.getType();
-      if (variableType.isStructType()) {
-        StructDefinitionSymbol structSym = (StructDefinitionSymbol)symbolTable.lookupGlobal(((StructType)variableType).getId());
-        if (structSym.getMemberType(id.getValue()) == null) {
-          id.reportError("Invalid struct field name");
-        }
+    if (sym != null && sym instanceof StructVariableSymbol) {
+      StructDefinitionSymbol structDef = ((StructVariableSymbol)sym).getStructDefinitionSymbol();
+      Symb memberSym = structDef.getMember(id.getValue());
+      if (memberSym == null) {
+        id.reportError("Invalid struct field name");
       } else {
-        leftId.reportError("Dot-access of non-struct type");
+        id.link(memberSym);
       }
+    } else {
+      accessor.reportError("Dot-access of non-struct type");
     }
   }
 }
@@ -904,6 +882,11 @@ class AssignNode extends ExpNode {
   public AssignNode(ExpNode leftHandSide, ExpNode exp) {
     this.leftHandSide = leftHandSide;
     this.exp = exp;
+  }
+
+  public void analyze(SymTable symbolTable) {
+    leftHandSide.analyze(symbolTable);
+    exp.analyze(symbolTable);
   }
 
   public void reportError(String error) {
