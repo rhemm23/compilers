@@ -58,8 +58,8 @@ class StructVariableSymbol extends Symb {
 
   private StructDefinitionSymbol structDefinitionSymbol;
 
-  public StructVariableSymbol(StructDefinitionSymbol structDefinitionSymbol) {
-    super(new StructType());
+  public StructVariableSymbol(String value, StructDefinitionSymbol structDefinitionSymbol) {
+    super(new StructType(value));
     this.structDefinitionSymbol = structDefinitionSymbol;
   }
 

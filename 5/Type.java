@@ -129,6 +129,12 @@ class FunctionType extends Type {
 
 class StructType extends Type {
   
+  private String id;
+
+  public StructType(String id) {
+    this.id = id;
+  }
+
   public boolean isStructType() {
     return true;
   }
@@ -138,7 +144,7 @@ class StructType extends Type {
   }
 
   public String toString() {
-    return "struct";
+    return id;
   }
 }
 

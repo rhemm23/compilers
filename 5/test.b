@@ -1,42 +1,70 @@
-bool bbb;
-struct S { int a; }
-struct S t;
+bool b;
+int c;
+int d;
+int e;
 
-void f(int p1, bool p2) {
+struct data {
+  int a;
+  int b;
+  int c;
 }
 
-void main() {
-    int aaa;
+struct data z;
 
-    /// some errors involving illegal operations on functions
-    aaa = f + f;
-    bbb = f == 3;
-    bbb = f > main;
-    bbb = f == f;
+void parse(int a, bool b) {
+  receive >> a;
+  ret;
+}
 
-    /// some errors involving bad function calls 
-    aaa();
-    f();
-    f(5);
-    f(aaa, aaa);
-    f(t, t.a);
-    S();
+int main() {
 
-    /// some errors involving structs 
-    t = 5;
-    t = t;
-    receive >> S;
-    t = tru || 3;
-    bbb = S && t.a;
+  b = c == 8;
+  b = c != 9;
+  b = c > 10;
+  b = c < 11;
+  b = c >= 0;
+  b = c <= 12;
 
-    /// error involving return
-    ret 10;
+  c = d + e;
+  c = d - e;
+  c = d / e;
+  c = d * e;
 
-    /// other type errors 
-    aaa = aaa + (!fls);
-    aaa = aaa + "foo";
-    bbb = aaa;
+  b = !b;
+  c = -c;
 
-    /// don't give too many or too few error messages here 
-    bbb = (aaa + tru) && (bbb < tru);
+  print << b;
+  print << c * 8;
+  print << "test";
+  print << main();
+
+  receive >> b;
+  receive >> c;
+
+  if (b) {
+    c = c * 8;
+  }
+  if (!b) {
+    c = c / 8;
+  } else {
+    c = c + 10;
+  }
+
+  while (tru) {
+    repeat (c) {
+      print << "x";
+    }
+  }
+
+  parse(8, tru);
+  parse(c, !fls);
+
+  b = tru && b;
+  b = fls || !tru;
+  b = ((b = tru) && !!!fls);
+
+  ++z.b;
+  --z.a;
+
+  ret z.c;
 }

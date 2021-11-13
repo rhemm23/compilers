@@ -93,7 +93,7 @@ class VarDeclNode extends DeclNode {
     } else if (type instanceof StructNode) {
       StructDefinitionSymbol structDefinitionSymbol = ((StructNode)type).analyze(symbolTable);
       if (structDefinitionSymbol != null) {
-        sym = new StructVariableSymbol(structDefinitionSymbol);
+        sym = new StructVariableSymbol(id.getValue(), structDefinitionSymbol);
       }
     } else {
       sym = new Symb(type.getType());
@@ -337,7 +337,7 @@ class StructNode extends TypeNode {
   }
 
   public Type getType() {
-    return new StructType();
+    return new StructType(id.getValue());
   }
 }
 
@@ -1410,7 +1410,7 @@ class EqualsNode extends BinaryExpNode {
       exp1.reportError("Equality operator applied to struct variables");
     } else if (!t1.isErrorType() && !t2.isErrorType()) {
       if (t1.equals(t2)) {
-        return t1;
+        return new BoolType();
       }
       exp1.reportError("Type mismatch");
     }
@@ -1441,7 +1441,7 @@ class NotEqualsNode extends BinaryExpNode {
       exp1.reportError("Equality operator applied to struct variables");
     } else if (!t1.isErrorType() && !t2.isErrorType()) {
       if (t1.equals(t2)) {
-        return t1;
+        return new BoolType();
       }
       exp1.reportError("Type mismatch");
     }
