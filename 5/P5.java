@@ -130,6 +130,7 @@ public class P5 {
 	        parser P = new parser(new Yylex(inFile));
 	        return P.parse();
 		} catch (Exception e){
+      System.out.println(e.toString());
 			return null;
 		}
 	}
@@ -143,7 +144,6 @@ public class P5 {
 		}
 		
 		astRoot.analyze();  // perform name analysis
-		astRoot.typeCheck();
 		
 		astRoot.unparse(outFile, 0);
 		return P5.RESULT_CORRECT;

@@ -1,4 +1,5 @@
-import java_cup.runtime.Symbol;
+import java_cup.runtime.*;
+import java.math.BigInteger;
 
 class Token {
 
@@ -15,7 +16,7 @@ class IntLiteralToken extends Token {
 
   int value;
 
-  IntLitTokenVal(int lineNum, int charNum, int value) {
+  IntLiteralToken(int lineNum, int charNum, int value) {
     super(lineNum, charNum);
     this.value = value;
   }
@@ -25,7 +26,7 @@ class IdToken extends Token {
 
   String value;
 
-  IdTokenVal(int lineNum, int charNum, String value) {
+  IdToken(int lineNum, int charNum, String value) {
     super(lineNum, charNum);
     this.value = value;
   }
@@ -35,7 +36,7 @@ class StringLiteralToken extends Token {
 
   String value;
 
-  StrLitTokenVal(int lineNum, int charNum, String value) {
+  StringLiteralToken(int lineNum, int charNum, String value) {
     super(lineNum, charNum);
     this.value = value;
   }
@@ -146,7 +147,7 @@ NOTNEWLINEORQUOTEORESCAPE = [^\n\"\\]
           
 ({LETTER}|"_")({LETTER}|{DIGIT}|"_")*
           {
-            Symbol symbol = new Symbol(sym.ID, new Token(yyline + 1, CharNum.num));
+            Symbol symbol = new Symbol(sym.ID, new IdToken(yyline + 1, CharNum.num, yytext()));
             CharNum.num += yytext().length();
             return symbol;
           }
@@ -155,14 +156,14 @@ NOTNEWLINEORQUOTEORESCAPE = [^\n\"\\]
             BigInteger number = new BigInteger(yytext());
             Integer value;
 
-            if (number > Integer.MAX_VALUE) {
+            if (number.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0) {
               ErrMsg.warn(yyline + 1, CharNum.num, "integer literal too large; using max value");
               value = Integer.MAX_VALUE;
             } else {
               value = number.intValue();
             }
 
-            Symbol symbol = new Symbol(sym.INTLITERAL, new IntegerLiteralToken(yyline + 1, CharNum.num, value));
+            Symbol symbol = new Symbol(sym.INTLITERAL, new IntLiteralToken(yyline + 1, CharNum.num, value));
             CharNum.num += yytext().length();
             return symbol;
           }

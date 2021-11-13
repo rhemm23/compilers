@@ -1,0 +1,33 @@
+struct data {
+  int a;
+  bool b;
+  bool data;
+  struct c x;
+}
+void test () {
+  int a;
+  receive >> a(int);
+}
+int test1 (int a, bool b, int c) {
+  receive >> "hello!";
+  ret;
+  ret fls;
+}
+void main () {
+  bool d;
+  struct data a;
+  receive >> main(->void);
+  receive >> data(StructDefinitionSymbol@1218025c);
+  receive >> a(data);
+  receive >> test(->void)();
+  receive >> 2;
+  receive >> main(->void);
+  receive >> data(StructDefinitionSymbol@1218025c);
+  receive >> a(data);
+  a(data)();
+  test(->void)(1);
+  test1(int,bool,int->int)((a(data).a + fls), 33, tru);
+  ret a(data).b;
+  ret (fls > tru);
+  d = (8 && fls);
+}

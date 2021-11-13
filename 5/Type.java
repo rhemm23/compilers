@@ -134,6 +134,10 @@ class StructType extends Type {
   public StructType(String id) {
     this.id = id;
   }
+
+  public String getId() {
+    return id;
+  }
   
   public boolean isStructType() {
     return true;

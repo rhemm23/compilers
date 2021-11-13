@@ -66,7 +66,6 @@ non terminal LinkedList       structBody;
 non terminal LinkedList       formals;
 non terminal LinkedList       formalsList;
 non terminal FormalDeclNode   formalDecl;
-non terminal FnBodyNode       fnBody;
 non terminal LinkedList       stmtList;
 non terminal StmtNode         stmt;
 non terminal AssignNode       assignExp;
@@ -135,9 +134,9 @@ varDecl         ::= type:t id:i SEMICOLON
                   RESULT = new VarDeclNode(new StructNode(t), i);
                 :};
 
-fnDecl          ::= type:t id:i formals:f fnBody:fb
+fnDecl          ::= type:t id:i formals:f LCURLY varDeclList:dl stmtList:sl RCURLY
                 {:
-                  RESULT = new FnDeclNode(t, i, f, fb);
+                  RESULT = new FnDeclNode(t, i, f, dl, sl);
                 :};
 
 structDecl      ::= STRUCT id:i LCURLY structBody:sb RCURLY
@@ -181,11 +180,6 @@ formalsList     ::= formalDecl:d
 formalDecl      ::= type:t id:i
                 {:
                   RESULT = new FormalDeclNode(t, i);
-                :};
-
-fnBody          ::= LCURLY varDeclList:dl stmtList:sl RCURLY
-                {:
-                  RESULT = new FnBodyNode(dl, sl);
                 :};
 
 stmtList        ::= stmtList:sl stmt:s
