@@ -28,7 +28,7 @@ public abstract class Type {
     return false;
   }
 
-  public boolean isStructVariableType() {
+  public boolean isStructType() {
     return false;
   }
 
@@ -112,14 +112,14 @@ class StringType extends Type {
   }
 }
 
-class FnType extends Type {
+class FunctionType extends Type {
 
-  public boolean isFnType() {
+  public boolean isFunctionType() {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isFnType();
+  public boolean equals(Type type) {
+    return type.isFunctionType();
   }
 
   public String toString() {
@@ -129,9 +129,9 @@ class FnType extends Type {
 
 class StructType extends Type {
 
-  private IdNode id;
+  private String id;
   
-  public StructType(IdNode id) {
+  public StructType(String id) {
     this.id = id;
   }
   
@@ -139,12 +139,12 @@ class StructType extends Type {
     return true;
   }
 
-  public boolean equals(Type t) {
-    return t.isStructType();
+  public boolean equals(Type type) {
+    return type.isStructType() && ((StructType)type).id.equals(id);
   }
 
   public String toString() {
-    return id.getValue();
+    return id;
   }
 }
 

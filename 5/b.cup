@@ -1,5 +1,5 @@
-import java_cup.runtime.*;
-import java.util.*;
+import java_cup.runtime.Symbol;
+import java.util.LinkedList;
 
 parser code {:
   public void syntax_error(Symbol currToken) {

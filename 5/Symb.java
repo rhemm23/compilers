@@ -2,7 +2,7 @@ import java.util.*;
 
 public abstract class Symb { }
 
-public class VariableSymbol extends Symb {
+ class VariableSymbol extends Symb {
 
   private Type type;
 
@@ -19,13 +19,13 @@ public class VariableSymbol extends Symb {
   }
 }
 
-class FnSym extends Symb {
+class FunctionSymbol extends Symb {
 
   private List<Type> formalTypes;
   private Type returnType;
 
-  public FnSym(Type returnType) {
-    super(new FnType());
+  public FunctionSymbol(Type returnType) {
+    super(new FunctionType());
     this.formalTypes = new LinkedList<Type>();
     this.returnType = returnType;
   }
@@ -56,11 +56,11 @@ class FnSym extends Symb {
   }
 }
 
-class StructSym extends Symb {
+class StructSymbol extends Symb {
 
   private IdNode id;
 
-  public StructSym(IdNode id) {
+  public StructSymbol(IdNode id) {
     super(new StructType(id));
     this.id = id;
   }
@@ -70,20 +70,20 @@ class StructSym extends Symb {
   }
 }
 
-class StructDefSym extends Symb {
+class StructDefinitionSymbol extends Symb {
 
-  private HashMap<String, Symb> members;
+  private HashMap<String, Type> members;
 
-  public StructDefSym() {
-    super(new StructDefType());
-    members = new HashMap<String, Symb>();
+  public StructDefinitionSymbol() {
+    super(new StructDefinitionType());
+    members = new HashMap<String, Type>();
   }
 
-  public void addMember(String name, Symb symbol) {
+  public void addMember(String name, Type type) {
     members.put(name, symbol);
   }
 
-  public Symb getMember(String name) {
+  public Type getMemberType(String name) {
     return members.get(name);
   }
 }
