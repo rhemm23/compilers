@@ -1,19 +1,17 @@
 import java.util.*;
 
-public abstract class Symb { }
-
-class VariableSymbol extends Symb {
+public class Symb {
 
   private Type type;
 
-  public VariableSymbol(Type type) {
+  public Symb(Type type) {
     this.type = type;
   }
 
   public Type getType() {
     return type;
   }
-  
+
   public String toString() {
     return type.toString();
   }
@@ -25,6 +23,7 @@ class FunctionSymbol extends Symb {
   private Type returnType;
 
   public FunctionSymbol(Type returnType) {
+    super(new FunctionType());
     formalTypes = new LinkedList<Type>();
     this.returnType = returnType;
   }
@@ -60,6 +59,7 @@ class StructVariableSymbol extends Symb {
   private StructDefinitionSymbol structDefinitionSymbol;
 
   public StructVariableSymbol(StructDefinitionSymbol structDefinitionSymbol) {
+    super(new StructType());
     this.structDefinitionSymbol = structDefinitionSymbol;
   }
 
@@ -73,6 +73,7 @@ class StructDefinitionSymbol extends Symb {
   private HashMap<String, Symb> members;
 
   public StructDefinitionSymbol() {
+    super(new StructDefinitionType());
     members = new HashMap<String, Symb>();
   }
 

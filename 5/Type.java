@@ -128,27 +128,17 @@ class FunctionType extends Type {
 }
 
 class StructType extends Type {
-
-  private String id;
-  
-  public StructType(String id) {
-    this.id = id;
-  }
-
-  public String getId() {
-    return id;
-  }
   
   public boolean isStructType() {
     return true;
   }
 
   public boolean equals(Type type) {
-    return type.isStructType() && ((StructType)type).id.equals(id);
+    return type.isStructType();
   }
 
   public String toString() {
-    return id;
+    return "struct";
   }
 }
 

@@ -318,9 +318,7 @@ NOTNEWLINEORQUOTEORESCAPE = [^\n\"\\]
           }
 
 "="       {
-            Symbol symbol = new Symbol(sym.ASSIGN, new Token(yyline + 1, CharNum.num));
-            CharNum.num += 2;
-            return symbol;
+            return new Symbol(sym.ASSIGN, new Token(yyline + 1, CharNum.num++));
           }
 
 .         {

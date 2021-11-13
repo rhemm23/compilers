@@ -20,6 +20,7 @@ public class P5 {
 	public static final int RESULT_CORRECT = 0;
 	public static final int RESULT_SYNTAX_ERROR = 1;
 	public static final int RESULT_TYPE_ERROR = 2;
+  public static final int RESULT_NAME_ERROR = 3;
 	public static final int RESULT_OTHER_ERROR = -1;
 
 	/**
@@ -129,8 +130,7 @@ public class P5 {
 		try {
 	        parser P = new parser(new Yylex(inFile));
 	        return P.parse();
-		} catch (Exception e){
-      System.out.println(e.toString());
+		} catch (Exception e) {
 			return null;
 		}
 	}
@@ -139,30 +139,43 @@ public class P5 {
 		Symbol cfgRoot = parseCFG();
 		
 		ProgramNode astRoot = (ProgramNode)cfgRoot.value; 
-		if (ErrMsg.getErr()) {  
+		if (ErrMsg.getErr()) {
 			return P5.RESULT_SYNTAX_ERROR;
 		}
 		
-		astRoot.analyze();  // perform name analysis
+		astRoot.analyze();
+    if (ErrMsg.getErr()) {
+      return P5.RESULT_NAME_ERROR;
+    }
+
+    astRoot.typeCheck();
+    if (ErrMsg.getErr()) {
+      return P5.RESULT_TYPE_ERROR;
+    }
 		
 		astRoot.unparse(outFile, 0);
 		return P5.RESULT_CORRECT;
 	}
 	
-	public void run(){
+	public void run() {
 		int resultCode = process();
 		if (resultCode == RESULT_CORRECT){
 			cleanup();
 			return;
 		}
 		
-		switch(resultCode){
-		case RESULT_SYNTAX_ERROR:
-			pukeAndDie("Syntax error", resultCode);
-		case RESULT_TYPE_ERROR:
-			pukeAndDie("Type checking error", resultCode);
-		default:
-			pukeAndDie("Type checking error", RESULT_OTHER_ERROR);
+		switch (resultCode) {
+      case RESULT_SYNTAX_ERROR:
+        pukeAndDie("Syntax error", resultCode);
+
+      case RESULT_TYPE_ERROR:
+        pukeAndDie("Type checking error", resultCode);
+
+      case RESULT_NAME_ERROR:
+        pukeAndDie("Name checking error", resultCode);
+
+      default:
+        pukeAndDie("Type checking error", RESULT_OTHER_ERROR);
 		}
 	}
 	

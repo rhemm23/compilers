@@ -17,17 +17,17 @@ void main () {
   bool d;
   struct data a;
   receive >> main(->void);
-  receive >> data(StructDefinitionSymbol@1218025c);
-  receive >> a(data);
+  receive >> data(struct);
+  receive >> a(struct);
   receive >> test(->void)();
   receive >> 2;
   receive >> main(->void);
-  receive >> data(StructDefinitionSymbol@1218025c);
-  receive >> a(data);
-  a(data)();
+  receive >> data(struct);
+  receive >> a(struct);
+  a(struct)();
   test(->void)(1);
-  test1(int,bool,int->int)((a(data).a + fls), 33, tru);
-  ret a(data).b;
+  test1(int,bool,int->int)((a(struct).a(int) + fls), 33, tru);
+  ret a(struct).b(bool);
   ret (fls > tru);
-  d = (8 && fls);
+  d(bool) = (8 && fls);
 }
