@@ -70,4 +70,5 @@ clean:
 	rm -f *~ *.class parser.java b.jlex.java sym.java
 
 cleantest:
+	rm -f typeErrors.out
 	rm -f test.out
