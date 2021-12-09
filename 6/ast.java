@@ -44,6 +44,10 @@ class ProgramNode extends ASTNode {
       declaration.typeCheck();
     }
   }
+
+  public void codeGen() {
+    
+  }
 }
 
 /*

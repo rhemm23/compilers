@@ -15,204 +15,203 @@ import java_cup.runtime.*;
  * it will generate MIPS code to the output file.
  */
 public class P6 {
-	FileReader inFile;
-	private PrintWriter outFile;
-	private static PrintStream outStream = System.err;
 
-	public static final int RESULT_CORRECT = 0;
-	public static final int RESULT_SYNTAX_ERROR = 1;
-	public static final int RESULT_TYPE_ERROR = 2;
-	public static final int RESULT_NAME_ANALYSIS_ERROR = 3;
-	public static final int RESULT_OTHER_ERROR = -1;
+  FileReader inFile;
+  PrintWriter outFile;
 
-	/**
-	 * P6 constructor for client programs and testers. Note that
-	 * users MUST invoke {@link setInfile} and {@link setOutfile}
-	 */
-	public P6() {
-	}
+  private static PrintStream outStream = System.err;
 
-	/**
-	 * If we are directly invoking P6 from the command line, this
-	 * is the command line to use. It shouldn't be invoked from
-	 * outside the class (hence the private constructor) because
-	 * it
-	 * @param args command line args array for [<infile> <outfile>]
-	 */
-	private P6(String[] args) {
-		//Parse arguments
-		if (args.length < 2) {
-			String msg = "please supply name of the input file "
-				+ "and name of file for assembly output.";
-			pukeAndDie(msg);
-		}
+  public static final int RESULT_CORRECT = 0;
+  public static final int RESULT_SYNTAX_ERROR = 1;
+  public static final int RESULT_TYPE_ERROR = 2;
+  public static final int RESULT_NAME_ANALYSIS_ERROR = 3;
+  public static final int RESULT_OTHER_ERROR = -1;
 
-		try {
-			setInfile(args[0]);
-			setOutfile(args[1]);
-		} catch(BadInfileException e) {
-			pukeAndDie(e.getMessage());
-		} catch(BadOutfileException e) {
-			pukeAndDie(e.getMessage());
-		}
-	}
+  /**
+    * P6 constructor for client programs and testers. Note that
+    * users MUST invoke {@link setInfile} and {@link setOutfile}
+    */
+  public P6() { }
 
-	/**
-	 * Source code file path
-	 * @param filename path to source file
-	 */
-	public void setInfile(String filename) throws BadInfileException{
-		try {
-			inFile = new FileReader(filename);
-		} catch (FileNotFoundException ex) {
-			throw new BadInfileException(ex, filename);
-		}
-	}
+  /**
+    * If we are directly invoking P6 from the command line, this
+    * is the command line to use. It shouldn't be invoked from
+    * outside the class (hence the private constructor) because
+    * it
+    * @param args command line args array for [<infile> <outfile>]
+    */
+  private P6(String[] args) {
+    if (args.length < 2) {
+      String msg = "please supply name of the input file "
+        + "and name of file for assembly output.";
+      pukeAndDie(msg);
+    }
+    try {
+      setInfile(args[0]);
+      setOutfile(args[1]);
+    } catch(BadInfileException e) {
+      pukeAndDie(e.getMessage());
+    } catch(BadOutfileException e) {
+      pukeAndDie(e.getMessage());
+    }
+  }
 
-	/**
-	 * Text file output
-	 * @param filename path to destination file
-	 */
-	public void setOutfile(String filename) throws BadOutfileException{
-		try {
-			outFile = new PrintWriter(filename);
-		} catch (FileNotFoundException ex) {
-			throw new BadOutfileException(ex, filename);
-		}
-	}
+  /**
+    * Source code file path
+    * @param filename path to source file
+    */
+  public void setInfile(String filename) throws BadInfileException{
+    try {
+      inFile = new FileReader(filename);
+    } catch (FileNotFoundException ex) {
+      throw new BadInfileException(ex, filename);
+    }
+  }
 
-	/**
-	 * Perform cleanup at the end of parsing. This should be called
-	 * after both good and bad input so that the files are all in a
-	 * consistent state
-	 */
-	public void cleanup() {
-		if (inFile != null) {
-			try {
-				inFile.close();
-			} catch (IOException e) {
-				//At this point, users already know they screwed
-				// up. No need to rub it in.
-			}
-		}
-		if (outFile != null) {
-			//If there is any output that needs to be
-			// written to the stream, force it out.
-			outFile.flush();
-			outFile.close();
-		}
-	}
+  /**
+    * Text file output
+    * @param filename path to destination file
+    */
+  public void setOutfile(String filename) throws BadOutfileException{
+    try {
+      outFile = new PrintWriter(filename);
+    } catch (FileNotFoundException ex) {
+      throw new BadOutfileException(ex, filename);
+    }
+  }
 
-	/**
-	 * Private error handling method. Convenience method for
-	 * @link pukeAndDie(String, int) with a default error code
-	 * @param error message to print on exit
-	 */
-	private void pukeAndDie(String error) {
-		pukeAndDie(error, -1);
-	}
+  /**
+    * Perform cleanup at the end of parsing. This should be called
+    * after both good and bad input so that the files are all in a
+    * consistent state
+    */
+  public void cleanup() {
+    if (inFile != null) {
+      try {
+        inFile.close();
+      } catch (IOException e) {
+        //At this point, users already know they screwed
+        // up. No need to rub it in.
+      }
+    }
+    if (outFile != null) {
+      //If there is any output that needs to be
+      // written to the stream, force it out.
+      outFile.flush();
+      outFile.close();
+    }
+  }
 
-	/**
-	 * Private error handling method. Prints an error message
-	 * @link pukeAndDie(String, int) with a default error code
-	 * @param error message to print on exit
-	 */
-	private void pukeAndDie(String error, int retCode) {
-		outStream.println(error);
-		cleanup();
-		System.exit(-1);
-	}
+  /**
+    * Private error handling method. Convenience method for
+    * @link pukeAndDie(String, int) with a default error code
+    * @param error message to print on exit
+    */
+  private void pukeAndDie(String error) {
+    pukeAndDie(error, -1);
+  }
 
-	/** the parser will return a Symbol whose value
-	 * field is the translation of the root nonterminal
-	 * (i.e., of the nonterminal "program")
-	 * @return root of the CFG
-	 */
-	private Symbol parseCFG() {
-		try {
-			parser P = new parser(new Yylex(inFile));
-			return P.parse();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+  /**
+    * Private error handling method. Prints an error message
+    * @link pukeAndDie(String, int) with a default error code
+    * @param error message to print on exit
+    */
+  private void pukeAndDie(String error, int retCode) {
+    outStream.println(error);
+    cleanup();
+    System.exit(-1);
+  }
 
-	public int process() {
-		Symbol cfgRoot = parseCFG();
+  /** the parser will return a Symbol whose value
+    * field is the translation of the root nonterminal
+    * (i.e., of the nonterminal "program")
+    * @return root of the CFG
+    */
+  private Symbol parseCFG() {
+    try {
+      parser P = new parser(new Yylex(inFile));
+      return P.parse();
+    } catch (Exception e) {
+      return null;
+    }
+  }
 
-		ProgramNode astRoot = (ProgramNode)cfgRoot.value;
-		if (ErrMsg.getErr()) {
-			return P6.RESULT_SYNTAX_ERROR;
-		}
+  public int process() {
+    Symbol cfgRoot = parseCFG();
 
-		astRoot.nameAnalysis();	 // perform name analysis
-		if (ErrMsg.getErr()) {
-			return P6.RESULT_NAME_ANALYSIS_ERROR;
-		}
+    ProgramNode astRoot = (ProgramNode)cfgRoot.value;
+    if (ErrMsg.getErr()) {
+      return P6.RESULT_SYNTAX_ERROR;
+    }
 
-		astRoot.typeCheck();
-		if (ErrMsg.getErr()) {
-			return P6.RESULT_TYPE_ERROR;
-		}
+    astRoot.analyze();
+    if (ErrMsg.getErr()) {
+      return P6.RESULT_NAME_ANALYSIS_ERROR;
+    }
 
-		//////////////////////////
-		// TODO: Calling codeGen   //
-		//////////////////////////
+    astRoot.typeCheck();
+    if (ErrMsg.getErr()) {
+      return P6.RESULT_TYPE_ERROR;
+    }
 
-		return P6.RESULT_CORRECT;
-	}
+    Codegen.p = outFile;
+    astRoot.codeGen();
+    Codegen.p.close();
 
-	public void run() {
-		int resultCode = process();
-		if (resultCode == RESULT_CORRECT) {
-			cleanup();
-			return;
-		}
+    return P6.RESULT_CORRECT;
+  }
 
-		switch(resultCode) {
-		case RESULT_SYNTAX_ERROR:
-			pukeAndDie("Syntax error", resultCode);
-		case RESULT_TYPE_ERROR:
-			pukeAndDie("Type checking error", resultCode);
-		case RESULT_NAME_ANALYSIS_ERROR:
-			pukeAndDie("Name analysis error", resultCode);
-		default:
-			pukeAndDie("Type checking error", RESULT_OTHER_ERROR);
-		}
-	}
+  public void run() {
+    int resultCode = process();
+    if (resultCode == RESULT_CORRECT) {
+      cleanup();
+      return;
+    }
 
-	private class BadInfileException extends Exception {
-		private static final long serialVersionUID = 1L;
-		private String message;
+    switch(resultCode) {
+    case RESULT_SYNTAX_ERROR:
+      pukeAndDie("Syntax error", resultCode);
+    case RESULT_TYPE_ERROR:
+      pukeAndDie("Type checking error", resultCode);
+    case RESULT_NAME_ANALYSIS_ERROR:
+      pukeAndDie("Name analysis error", resultCode);
+    default:
+      pukeAndDie("Type checking error", RESULT_OTHER_ERROR);
+    }
+  }
 
-		public BadInfileException(Exception cause, String filename) {
-			super(cause);
-			this.message = "Could not open " + filename + " for reading";
-		}
+  private class BadInfileException extends Exception {
+    private static final long serialVersionUID = 1L;
+    private String message;
 
-		@Override
-		public String getMessage() {
-			return message;
-		}
-	}
+    public BadInfileException(Exception cause, String filename) {
+      super(cause);
+      this.message = "Could not open " + filename + " for reading";
+    }
 
-	private class BadOutfileException extends Exception {
-		private static final long serialVersionUID = 1L;
-		private String message;
+    @Override
+    public String getMessage() {
+      return message;
+    }
+  }
 
-		public BadOutfileException(Exception cause, String filename) {
-			super(cause);
-			this.message = "Could not open " + filename + " for reading";
-		}
+  private class BadOutfileException extends Exception {
+    private static final long serialVersionUID = 1L;
+    private String message;
 
-		@Override
-		public String getMessage() {
-			return message;
-		}
-	}
+    public BadOutfileException(Exception cause, String filename) {
+      super(cause);
+      this.message = "Could not open " + filename + " for reading";
+    }
 
-	public static void main(String[] args) {
-		P6 instance = new P6(args);
-		instance.run();
-	}
+    @Override
+    public String getMessage() {
+      return message;
+    }
+  }
+
+  public static void main(String[] args) {
+    P6 instance = new P6(args);
+    instance.run();
+  }
 }
