@@ -60,7 +60,7 @@ public class P6 {
     * Source code file path
     * @param filename path to source file
     */
-  public void setInfile(String filename) throws BadInfileException{
+  public void setInfile(String filename) throws BadInfileException {
     try {
       inFile = new FileReader(filename);
     } catch (FileNotFoundException ex) {
@@ -72,7 +72,7 @@ public class P6 {
     * Text file output
     * @param filename path to destination file
     */
-  public void setOutfile(String filename) throws BadOutfileException{
+  public void setOutfile(String filename) throws BadOutfileException {
     try {
       outFile = new PrintWriter(filename);
     } catch (FileNotFoundException ex) {
