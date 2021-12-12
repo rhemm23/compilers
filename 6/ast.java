@@ -452,6 +452,18 @@ class PreIncStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public void codeGen(String functionExitLabel) {
+
+    ((IdNode)exp).codeGenAddress();
+    exp.codeGen();
+
+    Codegen.genPop(Codegen.T0);
+    Codegen.genPop(Codegen.T1);
+
+    Codegen.generate("add", Codegen.T0, Codegen.T0, 1);
+    Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
+  }
+
   public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
@@ -479,6 +491,18 @@ class PreDecStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public void codeGen(String functionExitLabel) {
+
+    ((IdNode)exp).codeGenAddress();
+    exp.codeGen();
+
+    Codegen.genPop(Codegen.T0);
+    Codegen.genPop(Codegen.T1);
+
+    Codegen.generate("sub", Codegen.T0, Codegen.T0, 1);
+    Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
+  }
+
   public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
@@ -504,6 +528,22 @@ class ReceiveStmtNode extends StmtNode {
 
   public ReceiveStmtNode(ExpNode exp) {
     this.exp = exp;
+  }
+
+  public void codeGen(String functionExitLabel) {
+
+    Codegen.generate("li", Codegen.V0, 5);
+    Codegen.generate("syscall");
+
+    ((IdNode)exp).codeGenAddress();
+    Codegen.genPop(Codegen.T0);
+
+    if (((IdNode)exp).getSym().getType().isIntType()) {
+      Codegen.generateIndexed("sw", Codegen.V0, Codegen.T0, 0);
+    } else {
+      Codegen.generate("sne", Codegen.T1, Codegen.V0, Codegen.FALSE);
+      Codegen.generateIndexed("sw", Codegen.T1, Codegen.T0, 0);
+    }
   }
 
   public void typeCheck(Type fnType) {
