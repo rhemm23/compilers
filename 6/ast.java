@@ -195,18 +195,23 @@ class FnDeclNode extends DeclNode {
       symbolTable.addDeclaration(id.getValue(), sym);
     }
     symbolTable.addScope();
+    Symb.CURRENT_OFFSET = 4;
     for (FormalDeclNode formal : formals) {
       Symb formalSym = formal.analyze(symbolTable);
       if (formalSym != null) {
         sym.addFormalType(formalSym.getType());
+        Symb.CURRENT_OFFSET += 4;
       }
     }
+    Symb.CURRENT_OFFSET = -4;
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : statements) {
       statement.analyze(symbolTable);
     }
+    Symb.CURRENT_OFFSET = Symb.GLOBAL_OFFSET;
     symbolTable.removeScope();
     return isDeclared ? null : sym;
   }
@@ -607,6 +612,7 @@ class IfStmtNode extends StmtNode {
     symbolTable.addScope();
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : statements) {
       statement.analyze(symbolTable);
@@ -689,6 +695,7 @@ class IfElseStmtNode extends StmtNode {
     symbolTable.addScope();
     for (DeclNode declaration : thenDeclarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : thenStatements) {
       statement.analyze(symbolTable);
@@ -697,6 +704,7 @@ class IfElseStmtNode extends StmtNode {
     symbolTable.addScope();
     for (DeclNode declaration : elseDeclarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : elseStatements) {
       statement.analyze(symbolTable);
@@ -759,6 +767,7 @@ class WhileStmtNode extends StmtNode {
     symbolTable.addScope();
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : statements) {
       statement.analyze(symbolTable);
@@ -821,6 +830,7 @@ class RepeatStmtNode extends StmtNode {
     symbolTable.addScope();
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
+      Symb.CURRENT_OFFSET -= 4;
     }
     for (StmtNode statement : statements) {
       statement.analyze(symbolTable);
