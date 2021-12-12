@@ -37,6 +37,10 @@ class ProgramNode extends ASTNode {
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
     }
+    Symb main = symbolTable.lookupLocal("main");
+    if (main == null || !main.getType().isFunctionType()) {
+      ErrMsg.fatal(0, 0, "No main function");
+    }
   }
 
   public void typeCheck() {
