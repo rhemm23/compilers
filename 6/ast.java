@@ -219,7 +219,7 @@ class FnDeclNode extends DeclNode {
   public void codeGen() {
 
     if (id.getValue().equals("main")) {
-      Codegen.p.print("\t.text\n\t.globl main\nmain:\n__start:\n");
+      Codegen.p.print("\t.text\n\t.globl main\nmain:\n");
     } else {
       Codegen.p.printf("\t.text\n_%s:\n", id.getValue());
     }
