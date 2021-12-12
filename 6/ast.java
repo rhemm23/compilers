@@ -115,6 +115,7 @@ class VarDeclNode extends DeclNode {
     }
     if (!isVoidType && !isDeclared && sym != null) {
       symbolTable.addDeclaration(id.getValue(), sym);
+      id.link(sym);
       return sym;
     }
     return null;

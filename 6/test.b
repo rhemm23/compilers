@@ -56,7 +56,7 @@ void main() {
   } else {
     print << "Failed\n";
   }
-  if (8 > 7 && 7 < 8 && 8 >= 8 && 7 <= 7 && (fls != tru) && (tru == tru)) {
+  if (((a = 8) > 7) && 7 < 8 && 8 >= 8 && 7 <= 7 && (fls != tru) && (tru == tru)) {
     print << "Comparison operators working\n";
   } else {
     print << "Failed\n";
@@ -66,4 +66,10 @@ void main() {
   if (g != 2) {
     print << "Failed\n";
   }
+  print << "Enter a number: ";
+  receive >> g;
+  print << "You entered: ";
+  print << g;
+  print << "\n";
+  print << "SUCCESS";
 }
