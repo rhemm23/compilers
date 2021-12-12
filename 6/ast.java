@@ -219,7 +219,7 @@ class FnDeclNode extends DeclNode {
   public void codeGen() {
 
     if (id.getValue().equals("main")) {
-      Codegen.p.print("\t.text\n\t.globl main\nmain:\n");
+      Codegen.p.print("\t.text\n\t.globl main\nmain:\n__start:\n");
     } else {
       Codegen.p.printf("\t.text\n_%s:\n", id.getValue());
     }
@@ -242,7 +242,13 @@ class FnDeclNode extends DeclNode {
     Codegen.generate("move", Codegen.T0, Codegen.FP);
     Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
     Codegen.generate("move", Codegen.SP, Codegen.T0);
-    Codegen.generate("jr", Codegen.RA);
+
+    if (id.getValue().equals("main")) {
+      Codegen.generate("li", Codegen.V0, 10);
+      Codegen.generate("syscall");
+    } else {
+      Codegen.generate("jr", Codegen.RA);
+    }
   }
 }
 
