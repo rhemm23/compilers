@@ -410,7 +410,7 @@ abstract class StmtNode extends ASTNode {
 
   public abstract void analyze(SymTable symbolTable);
 
-  public abstract void codeGen(String functionExitLabel);
+  public void codeGen(String functionExitLabel) { }
 
   public int getLocalCount() {
     return 0;
@@ -825,6 +825,25 @@ class WhileStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public void codeGen(String functionExitLabel) {
+
+    String startLabel = Codegen.nextLabel();
+    String doneLabel = Codegen.nextLabel();
+
+    Codegen.genLabel(startLabel);
+    exp.codeGen();
+
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("beq", Codegen.T0, Codegen.FALSE, doneLabel);
+
+    for (StmtNode statement : statements) {
+      statement.codeGen(functionExitLabel);
+    }
+
+    Codegen.generate("b", startLabel);
+    Codegen.genLabel(doneLabel);
+  }
+
   public int getLocalCount() {
     int count = declarations.size();
     for (StmtNode statement : statements) {
@@ -943,6 +962,10 @@ class CallStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public void codeGen(String functionExitLabel) {
+    exp.codeGen(false);
+  }
+
   public void unparse(PrintWriter code, int indent) {
     addIndent(code, indent);
     exp.unparse(code, 0);
@@ -966,6 +989,14 @@ class ReturnStmtNode extends StmtNode {
 
   public ReturnStmtNode(ExpNode exp) {
     this.exp = exp;
+  }
+
+  public void codeGen(String functionExitLabel) {
+    if (exp != null) {
+      exp.codeGen();
+      Codegen.genPop(Codegen.V0);
+    }
+    Codegen.generate("b", functionExitLabel);
   }
 
   public void typeCheck(Type fnType) {
@@ -1317,6 +1348,26 @@ class CallExpNode extends ExpNode {
   public CallExpNode(IdNode id, List<ExpNode> expressions) {
     this.expressions = expressions;
     this.id = id;
+  }
+
+  public void codeGen() {
+    codeGen(true);
+  }
+
+  public void codeGen(boolean pushResult) {
+    for (int i = expressions.size() - 1; i >= 0; i--) {
+      expressions.get(i).codeGen();
+    }
+    String funcLabel = String.format("_%s", id.getValue());
+    if (id.getValue() == "main") {
+      funcLabel = "main";
+    }
+    Codegen.generate("jal", funcLabel);
+    int paramCount = ((FunctionSymbol)id.getSym()).getFormalTypes().size();
+    Codegen.generate("add", Codegen.SP, paramCount * 4);
+    if (pushResult && !((FunctionSymbol)id.getSym()).getReturnType().isVoidType()) {
+      Codegen.genPush(Codegen.V0);
+    }
   }
 
   public Type typeCheck() {
