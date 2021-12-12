@@ -1034,7 +1034,7 @@ class ReturnStmtNode extends StmtNode {
  */
 abstract class ExpNode extends ASTNode {
 
-  public abstract void codeGen();
+  public void codeGen() { }
 
   public abstract Type typeCheck();
 
@@ -1053,6 +1053,11 @@ class IntLitNode extends ExpNode {
     this.charNum = charNum;
     this.lineNum = lineNum;
     this.value = value;
+  }
+
+  public void codeGen() {
+    Codegen.generate("li", Codegen.T0, value);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
@@ -1081,6 +1086,17 @@ class StringLitNode extends ExpNode {
     this.value = value;
   }
 
+  public void codeGen() {
+    String stringLabel = Codegen.stringLabels.get(value);
+    if (stringLabel == null) {
+      stringLabel = Codegen.nextLabel();
+      Codegen.p.printf("\t.data\n%s:\t.asciiz %s\n\t.text\n", stringLabel, value);
+      Codegen.stringLabels.put(value, stringLabel);
+    }
+    Codegen.generate("la", Codegen.T0, stringLabel);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     return new StringType();
   }
@@ -1105,6 +1121,11 @@ class TrueNode extends ExpNode {
     this.lineNum = lineNum;
   }
 
+  public void codeGen() {
+    Codegen.generate("li", Codegen.T0, Codegen.TRUE);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     return new BoolType();
   }
@@ -1127,6 +1148,11 @@ class FalseNode extends ExpNode {
   public FalseNode(int lineNum, int charNum) {
     this.charNum = charNum;
     this.lineNum = lineNum;
+  }
+
+  public void codeGen() {
+    Codegen.generate("li", Codegen.T0, Codegen.FALSE);
+    Codegen.genPush(Codegen.T0);
   }
   
   public Type typeCheck() {
@@ -1457,6 +1483,15 @@ class UnaryMinusNode extends UnaryExpNode {
     super(exp);
   }
 
+  public void codeGen() {
+    exp.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("li", Codegen.T1, -1);
+    Codegen.generate("mult", Codegen.T0, Codegen.T1);
+    Codegen.generate("mflo", Codegen.T0);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isIntType()) {
@@ -1475,6 +1510,13 @@ class NotNode extends UnaryExpNode {
 
   public NotNode(ExpNode exp) {
     super(exp);
+  }
+
+  public void codeGen() {
+    exp.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("seq", Codegen.T0, Codegen.T0, Codegen.FALSE);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
@@ -1533,6 +1575,15 @@ class PlusNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("add", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1557,6 +1608,15 @@ class MinusNode extends BinaryExpNode {
 
   public MinusNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("sub", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
@@ -1585,6 +1645,16 @@ class TimesNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("mult", Codegen.T0, Codegen.T1);
+    Codegen.generate("mflo", Codegen.T0);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1609,6 +1679,16 @@ class DivideNode extends BinaryExpNode {
 
   public DivideNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("div", Codegen.T0, Codegen.T1);
+    Codegen.generate("mflo", Codegen.T0);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {

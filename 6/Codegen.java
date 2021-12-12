@@ -1,8 +1,11 @@
 import java.io.PrintWriter;
 
+import java.util.HashMap;
+
 public class Codegen {
 
-  public static PrintWriter p = null;    
+  public static PrintWriter p = null;
+  public static HashMap<String, String> stringLabels = new HashMap<String, String>();
 
   public static final String TRUE = "1";
   public static final String FALSE = "0";
@@ -143,19 +146,11 @@ public class Codegen {
     generateLabeled(label, opcode, comment, "");
   }
 
-  // **********************************************************************
-  // genPush
-  //    generate code to push the given value onto the stack
-  // **********************************************************************
   public static void genPush(String s) {
     generateIndexed("sw", s, SP, 0, "PUSH");
     generate("subu", SP, SP, 4);
   }
 
-  // **********************************************************************
-  // genPop
-  //    generate code to pop into the given register
-  // **********************************************************************
   public static void genPop(String s) {
     generateIndexed("lw", s, SP, 4, "POP");
     generate("addu", SP, SP, 4);
