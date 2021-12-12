@@ -1815,6 +1815,15 @@ class EqualsNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("seq", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1844,6 +1853,15 @@ class NotEqualsNode extends BinaryExpNode {
 
   public NotEqualsNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("sne", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
@@ -1877,6 +1895,15 @@ class LessNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("slt", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1901,6 +1928,15 @@ class GreaterNode extends BinaryExpNode {
 
   public GreaterNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("sgt", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
@@ -1929,6 +1965,15 @@ class LessEqNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("sle", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1953,6 +1998,15 @@ class GreaterEqNode extends BinaryExpNode {
 
   public GreaterEqNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+    exp1.codeGen();
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T1);
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("sge", Codegen.T0, Codegen.T0, Codegen.T1);
+    Codegen.genPush(Codegen.T0);
   }
 
   public Type typeCheck() {
