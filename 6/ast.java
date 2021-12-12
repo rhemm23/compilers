@@ -50,7 +50,9 @@ class ProgramNode extends ASTNode {
   }
 
   public void codeGen() {
-    
+    for (DeclNode declaration : declarations) {
+      declaration.codeGen();
+    }
   }
 }
 
@@ -58,6 +60,8 @@ class ProgramNode extends ASTNode {
  * Declaration nodes
  */
 abstract class DeclNode extends ASTNode {
+
+  public void codeGen() { }
 
   public void typeCheck() { }
 
@@ -115,6 +119,12 @@ class VarDeclNode extends DeclNode {
     }
     return null;
   }
+
+  public void codeGen() {
+    if (id.getSym().getOffset() == Symb.GLOBAL_OFFSET) {
+      Codegen.generateGlobalVariable(id.getValue());
+    }
+  }
 }
 
 class FnDeclNode extends DeclNode {
@@ -137,6 +147,14 @@ class FnDeclNode extends DeclNode {
     this.formals = formals;
     this.type = type;
     this.id = id;
+  }
+
+  public int getLocalCount() {
+    int count = declarations.size();
+    for (StmtNode statement : statements) {
+      count += statement.getLocalCount();
+    }
+    return count;
   }
 
   public void typeCheck() {
@@ -191,6 +209,35 @@ class FnDeclNode extends DeclNode {
     }
     symbolTable.removeScope();
     return isDeclared ? null : sym;
+  }
+
+  public void codeGen() {
+
+    if (id.getValue().equals("main")) {
+      Codegen.p.print("\t.text\n\t.globl main\nmain:\n");
+    } else {
+      Codegen.p.printf("\t.text\n_%s:\n", id.getValue());
+    }
+
+    Codegen.genPush(Codegen.RA);
+    Codegen.genPush(Codegen.FP);
+
+    Codegen.generate("addu", Codegen.FP, Codegen.SP, 8);
+    Codegen.generate("subu", Codegen.SP, Codegen.SP, getLocalCount() * 4);
+
+    String functionExitLabel = String.format("_%s_exit", id.getValue());
+
+    for (StmtNode statement : statements) {
+      statement.codeGen(functionExitLabel);
+    }
+
+    Codegen.p.printf("%s:\n", functionExitLabel);
+
+    Codegen.generateIndexed("lw", Codegen.RA, Codegen.FP, 0);
+    Codegen.generate("move", Codegen.T0, Codegen.FP);
+    Codegen.generateIndexed("lw", Codegen.FP, Codegen.FP, -4);
+    Codegen.generate("move", Codegen.SP, Codegen.T0);
+    Codegen.generate("jr", Codegen.RA);
   }
 }
 
@@ -357,6 +404,12 @@ abstract class StmtNode extends ASTNode {
   public abstract void typeCheck(Type fnType);
 
   public abstract void analyze(SymTable symbolTable);
+
+  public abstract void codeGen(String functionExitLabel);
+
+  public int getLocalCount() {
+    return 0;
+  }
 }
 
 class AssignStmtNode extends StmtNode {
@@ -516,6 +569,14 @@ class IfStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public int getLocalCount() {
+    int count = declarations.size();
+    for (StmtNode statement : statements) {
+      count += statement.getLocalCount();
+    }
+    return count;
+  }
+
   public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isBoolType()) {
@@ -574,6 +635,17 @@ class IfElseStmtNode extends StmtNode {
     this.thenStatements = thenStatements;
     this.elseStatements = elseStatements;
     this.exp = exp;
+  }
+
+  public int getLocalCount() {
+    int count = thenDeclarations.size() + elseDeclarations.size();
+    for (StmtNode statement : thenStatements) {
+      count += statement.getLocalCount();
+    }
+    for (StmtNode statement : elseStatements) {
+      count += statement.getLocalCount();
+    }
+    return count;
   }
 
   public void typeCheck(Type fnType) {
@@ -649,6 +721,14 @@ class WhileStmtNode extends StmtNode {
     this.exp = exp;
   }
 
+  public int getLocalCount() {
+    int count = declarations.size();
+    for (StmtNode statement : statements) {
+      count += statement.getLocalCount();
+    }
+    return count;
+  }
+
   public void typeCheck(Type fnType) {
     Type type = exp.typeCheck();
     if (!type.isErrorType() && !type.isBoolType()) {
@@ -701,6 +781,14 @@ class RepeatStmtNode extends StmtNode {
     this.declarations = declarations;
     this.statements = statements;
     this.exp = exp;
+  }
+
+  public int getLocalCount() {
+    int count = declarations.size();
+    for (StmtNode statement : statements) {
+      count += statement.getLocalCount();
+    }
+    return count;
   }
 
   public void typeCheck(Type fnType) {

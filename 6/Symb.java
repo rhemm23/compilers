@@ -2,10 +2,21 @@ import java.util.*;
 
 public class Symb {
 
+  public static int GLOBAL_OFFSET = Integer.MAX_VALUE;
+
+  private int offset;
   private Type type;
 
   public Symb(Type type) {
     this.type = type;
+  }
+
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
+
+  public int getOffset() {
+    return offset;
   }
 
   public Type getType() {
