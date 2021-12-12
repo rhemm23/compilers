@@ -572,13 +572,27 @@ class ReceiveStmtNode extends StmtNode {
 class PrintStmtNode extends StmtNode {
 
   private ExpNode exp;
+  private Type type;
 
   public PrintStmtNode(ExpNode exp) {
     this.exp = exp;
   }
 
+  public void codeGen(String functionExitLabel) {
+
+    exp.codeGen();
+    Codegen.genPop(Codegen.A0);
+
+    if (type.isStringType()) {
+      Codegen.generate("li", Codegen.V0, 4);
+    } else {
+      Codegen.generate("li", Codegen.V0, 1);
+    }
+    Codegen.generate("syscall");
+  }
+
   public void typeCheck(Type fnType) {
-    Type type = exp.typeCheck();
+    type = exp.typeCheck();
     if (type.isFunctionType()) {
       exp.reportError("Attempt to write function");
     } else if (type.isVoidType()) {
@@ -616,6 +630,21 @@ class IfStmtNode extends StmtNode {
     this.declarations = declarations;
     this.statements = statements;
     this.exp = exp;
+  }
+
+  public void codeGen(String functionExitLabel) {
+
+    String doneLabel = Codegen.nextLabel();
+    exp.codeGen();
+
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("beq", Codegen.T0, Codegen.FALSE, doneLabel);
+
+    for (StmtNode statement : statements) {
+      statement.codeGen(functionExitLabel);
+    }
+
+    Codegen.p.printf("%s:\n", doneLabel);
   }
 
   public int getLocalCount() {
@@ -685,6 +714,29 @@ class IfElseStmtNode extends StmtNode {
     this.thenStatements = thenStatements;
     this.elseStatements = elseStatements;
     this.exp = exp;
+  }
+
+  public void codeGen(String functionExitLabel) {
+
+    String doneLabel = Codegen.nextLabel();
+    String falseLabel = Codegen.nextLabel();
+
+    exp.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("beq", Codegen.T0, Codegen.FALSE, falseLabel);
+
+    for (StmtNode statement : thenStatements) {
+      statement.codeGen(functionExitLabel);
+    }
+
+    Codegen.generate("b", doneLabel);
+    Codegen.p.printf("%s:\n", falseLabel);
+
+    for (StmtNode statement : elseStatements) {
+      statement.codeGen(functionExitLabel);
+    }
+
+    Codegen.p.printf("%s:\n", doneLabel);
   }
 
   public int getLocalCount() {
