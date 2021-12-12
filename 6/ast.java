@@ -1717,6 +1717,29 @@ class AndNode extends BinaryExpNode {
     super(exp1, exp2);
   }
 
+  public void codeGen() {
+
+    String falseLabel = Codegen.nextLabel();
+    String doneLabel = Codegen.nextLabel();
+
+    exp1.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("beq", Codegen.T0, Codegen.FALSE, falseLabel);
+
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("beq", Codegen.T0, Codegen.FALSE, falseLabel);
+
+    Codegen.generate("li", Codegen.T0, Codegen.TRUE);
+    Codegen.generate("b", doneLabel);
+
+    Codegen.genLabel(falseLabel);
+    Codegen.generate("li", Codegen.T0, Codegen.FALSE);
+
+    Codegen.genLabel(doneLabel);
+    Codegen.genPush(Codegen.T0);
+  }
+
   public Type typeCheck() {
     Type t1 = exp1.typeCheck();
     Type t2 = exp2.typeCheck();
@@ -1741,6 +1764,29 @@ class OrNode extends BinaryExpNode {
 
   public OrNode(ExpNode exp1, ExpNode exp2) {
     super(exp1, exp2);
+  }
+
+  public void codeGen() {
+
+    String trueLabel = Codegen.nextLabel();
+    String doneLabel = Codegen.nextLabel();
+
+    exp1.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("bne", Codegen.T0, Codegen.FALSE, trueLabel);
+
+    exp2.codeGen();
+    Codegen.genPop(Codegen.T0);
+    Codegen.generate("bne", Codegen.T0, Codegen.FALSE, trueLabel);
+
+    Codegen.generate("li", Codegen.T0, Codegen.FALSE);
+    Codegen.generate("b", doneLabel);
+
+    Codegen.genLabel(trueLabel);
+    Codegen.generate("li", Codegen.T0, Codegen.TRUE);
+
+    Codegen.genLabel(doneLabel);
+    Codegen.genPush(Codegen.T0);
   }
   
   public Type typeCheck() {
