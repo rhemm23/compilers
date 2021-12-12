@@ -203,7 +203,7 @@ class FnDeclNode extends DeclNode {
         Symb.CURRENT_OFFSET += 4;
       }
     }
-    Symb.CURRENT_OFFSET = -4;
+    Symb.CURRENT_OFFSET = -8;
     for (DeclNode declaration : declarations) {
       declaration.analyze(symbolTable);
       Symb.CURRENT_OFFSET -= 4;
@@ -423,6 +423,10 @@ class AssignStmtNode extends StmtNode {
 
   public AssignStmtNode(AssignNode assign) {
     this.assign = assign;
+  }
+
+  public void codeGen(String functionExitLabel) {
+    assign.codeGen(false);
   }
 
   public void typeCheck(Type fnType) {
@@ -907,6 +911,8 @@ class ReturnStmtNode extends StmtNode {
  */
 abstract class ExpNode extends ASTNode {
 
+  public abstract void codeGen();
+
   public abstract Type typeCheck();
 
   public void analyze(SymTable symbolTable) { }
@@ -1027,6 +1033,24 @@ class IdNode extends ExpNode {
     this.value = value;
   }
 
+  public void codeGenAddress() {
+    Codegen.generate("la", Codegen.T0, getOperand());
+    Codegen.genPush(Codegen.T0);
+  }
+
+  public void codeGen() {
+    Codegen.generate("lw", Codegen.T0, getOperand());
+    Codegen.genPush(Codegen.T0);
+  }
+
+  private String getOperand() {
+    if (sym.getOffset() == Symb.GLOBAL_OFFSET) {
+      return String.format("_%s", value);
+    } else {
+      return String.format("%d($fp)", sym.getOffset());
+    }
+  }
+
   public Type typeCheck() {
     return sym.getType();
   }
@@ -1132,6 +1156,25 @@ class AssignNode extends ExpNode {
   public AssignNode(ExpNode leftHandSide, ExpNode exp) {
     this.leftHandSide = leftHandSide;
     this.exp = exp;
+  }
+
+  public void codeGen() {
+    codeGen(true);
+  }
+
+  public void codeGen(boolean pushResult) {
+
+    ((IdNode)leftHandSide).codeGenAddress();
+    exp.codeGen();
+    
+    Codegen.genPop(Codegen.T0);
+    Codegen.genPop(Codegen.T1);
+
+    Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
+
+    if (pushResult) {
+      Codegen.genPush(Codegen.T0);
+    }
   }
 
   public Type typeCheck() {
